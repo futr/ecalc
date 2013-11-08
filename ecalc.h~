@@ -109,4 +109,3 @@ int ecalc_strncmp( char *str1, char *str2, int n );                             
 #endif
 
 #endif
-

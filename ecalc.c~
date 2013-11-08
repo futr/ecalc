@@ -1050,4 +1050,3 @@ int ecalc_strncmp( char *str1, char *str2, int n )
 
     return ret;
 }
-
