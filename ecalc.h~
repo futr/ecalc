@@ -90,19 +90,19 @@ struct ECALC_RESERVED_CONTAINER {
 extern "C" {
 #endif
 
-void ecalc_memman_init( void );														/* メモリマネージャ初期化 */
+void ecalc_memman_init( void );															/* メモリマネージャ初期化 */
 struct ECALC_TOKEN *ecalc_memman_malloc( void );										/* malloc */
 void ecalc_memman_free( struct ECALC_TOKEN *tok );										/* free */
 
-struct ECALC_TOKEN *ecalc_make_token( char *text );									/* トークン連結リストを作る */
+struct ECALC_TOKEN *ecalc_make_token( char *text );										/* トークン連結リストを作る */
 struct ECALC_TOKEN *ecalc_make_tree( struct ECALC_TOKEN *token );						/* トークンをツリーに変換 */
 double ecalc_get_tree_value( struct ECALC_TOKEN *token, double **vars, double ans );	/* ツリーから値を得る */
-void ecalc_free_token( struct ECALC_TOKEN *token );									/* トークン連結リスト解放 */
+void ecalc_free_token( struct ECALC_TOKEN *token );										/* トークン連結リスト解放 */
 
-struct ECALC_TOKEN *ecalc_malloc_token( void );										/* トークンを一個作る */
+struct ECALC_TOKEN *ecalc_malloc_token( void );											/* トークンを一個作る */
 void ecalc_make_exp( struct ECALC_TOKEN *left );										/* 左辺と右辺を結合 */
 int ecalc_token_is_value( struct ECALC_TOKEN *token );									/* 与えられたトークンが値を持つものかチェック */
-int ecalc_strncmp( char *str1, char *str2, int n );									/* 大文字小文字を区別しないstrncmp */
+int ecalc_strncmp( char *str1, char *str2, int n );										/* 大文字小文字を区別しないstrncmp */
 
 #ifdef __cplusplus
 }

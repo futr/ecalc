@@ -27,7 +27,7 @@
 */
 
 /* メモリマネージャー用トークン */
-// static struct ECALC_TOKEN ecalc_tokens[ECALC_MEMMAN_TOKENS];
+static struct ECALC_TOKEN ecalc_tokens[ECALC_MEMMAN_TOKENS];
 
 /* 予約語リスト */
 static struct ECALC_RESERVED_CONTAINER ecalc_reserved[] = {
