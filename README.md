@@ -6,3 +6,4 @@ C言語の練習用に記述したもので，実装方法やアルゴリズム�
 もし何かの参考になれば幸いです．
 
 # License
+This project is licesed under the 2-clause BSD license.
