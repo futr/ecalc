@@ -1,6 +1,6 @@
 # 名前
-SOURCES	= main.c ecalc.c
-TARGET	= main
+SOURCES = main.c ecalc.c
+TARGET  = main
 
 LINK = -lm
 
