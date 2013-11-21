@@ -83,7 +83,6 @@ ECALC_CALC:
     goto ECALC_RECALC;
 
 ECALC_END:
-
     return 0;
 }
 
