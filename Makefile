@@ -1,11 +1,11 @@
 # 名前
-SOURCES = main.c ecalc.c
+SOURCES = main.c ecalc.c ecalc_jit.c
 TARGET  = main
 
 LINK = -lm
 
 # 環境定数
-CC = clang
+CC = gcc
 
 # ルール
 .PHONY: clean
@@ -13,7 +13,7 @@ CC = clang
 all :
 	$(MAKE) $(TARGET)
 
-$(TARGET) : $(SOURCES) Makefile
+$(TARGET) : $(SOURCES)
 	$(CC) -O2 -o $(TARGET) $(SOURCES) -Wall $(LINK)
 
 clean :
