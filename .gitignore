@@ -1,3 +1,5 @@
+*.obj
+*.pro.*
 *.o
 *.out
 *.exe
