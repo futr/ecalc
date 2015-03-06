@@ -123,7 +123,8 @@ void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *token )
 {
 	// 木をバイナリへ
 	/*
-	 * 左変数ポインタ保存にECX,右にEDXを使う ( 結局破壊のコストから使わなかった )
+	 * eaxはポインタレジスタ、ecxはeaxのバッファ、edxは定数レジスタとした
+	 * ebxは保存しなければならないので使っていない
 	 * 戻り値はst(0)に入れる
 	 * EBPは常にコールされた時点でのESPを指している
 	 * つまりavrs,ansにはEBP経由でアクセス可能
@@ -1126,11 +1127,11 @@ void ecalc_bin_printer_load_exp_var_ptr_to_eax( ECALC_JIT_TREE *tree, int index 
 	// EAXにdouble**の値（引数の値）をロード
 	ecalc_bin_printer_load_eax_pointed_to_eax( tree, 0 );
 
-	// indexをebxにロード
-	ecalc_bin_printer_load_val_to_ebx( tree, index );
+	// indexをedxにロード
+	ecalc_bin_printer_load_val_to_edx( tree, index );
 
 	// 変数のアドレス計算
-	// lea eax, [eax+ebx*4]	8D0498
+	// lea eax, [eax+edx*4]	8D0490
 	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 
 	// EAXにdouble*の値をロード
@@ -1205,13 +1206,13 @@ void ecalc_bin_printer_call( ECALC_JIT_TREE *tree )
 	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
-void ecalc_bin_printer_load_val_to_ebx(ECALC_JIT_TREE *tree, int32_t val)
+void ecalc_bin_printer_load_val_to_edx(ECALC_JIT_TREE *tree, int32_t val)
 {
-	// EBXに32ビット整数valをロード
+	// EDXに32ビット整数valをロード
 	/*
-	 * mov ebx, val	BBvvvvvvvv
+	 * mov edx, val	BAvvvvvvvv
 	 */
-	unsigned char bin[] = {0xBB, 0x00, 0x00, 0x00, 0x00};
+	unsigned char bin[] = {0xBA, 0x00, 0x00, 0x00, 0x00};
 
 	memcpy( bin + 1, &val, sizeof(int32_t) );
 

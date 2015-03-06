@@ -54,7 +54,7 @@ void ecalc_bin_printer_load_eax_pointed_to_eax( ECALC_JIT_TREE *tree, int8_t val
 void ecalc_bin_printer_load_exp_ans_ptr_to_eax( ECALC_JIT_TREE *tree );
 void ecalc_bin_printer_load_exp_var_ptr_to_eax( ECALC_JIT_TREE *tree, int index );
 void ecalc_bin_printer_load_function_ptr_to_eax(ECALC_JIT_TREE *tree, void (*func)( void ) );
-void ecalc_bin_printer_load_val_to_ebx( ECALC_JIT_TREE *tree, int32_t val );
+void ecalc_bin_printer_load_val_to_edx( ECALC_JIT_TREE *tree, int32_t val );
 void ecalc_bin_printer_add_eax_i8( ECALC_JIT_TREE *tree, int8_t val );
 void ecalc_bin_printer_push_dword_val( ECALC_JIT_TREE *tree, uint32_t val );
 void ecalc_bin_printer_store_dword_val( ECALC_JIT_TREE *tree, int8_t pos, uint32_t val );
