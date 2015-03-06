@@ -13,7 +13,7 @@ C言語の練習用に記述したもので，実装方法やアルゴリズム�
 
 ## 使い方
 ヘッダをインクルードします。
-JITを使用しない場合は`ecalc_jit.h`は不要です
+JITを使用しない場合は`ecalc_jit.h`は不要です。
 ```C
 #include "ecalc.h"
 #include "ecalc_jit.h"
@@ -37,6 +37,9 @@ for ( i = 0; i < ECALC_VAR_COUNT; i++ ) {
 ```
 入力文字列をレキシカルアナライズ、パース、実行します。
 答えはansに入ります。
+
+JITを使用しない場合はツリーに変更したあと`ans = ecalc_get_tree_value( tok, vars, ans )`
+を実行すれば結果が得られます。
 ```C
 /* 分割 */
 tok = ecalc_make_token( "5*2+3-(42*sin(pi/4))" );
@@ -84,7 +87,7 @@ ecalc_free_token( tok );
 ## 関数
 関数には１引数関数、２引数関数、定数関数があります。
 三角関数はラジアンです。
-* sin(a), cos(a), tan(a), asin(a), acos(a), atan(a), atan2(a)
+* sin(a), cos(a), tan(a), asin(a), acos(a), atan(a)
 * log(a) : log10
 * ln(a) : 自然対数のlog
 * rad(a), deg(a) : aをラジアン、度に変換
