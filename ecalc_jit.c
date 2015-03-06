@@ -107,12 +107,14 @@ void ecalc_bin_printer( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *token )
 void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *token )
 {
 	// 木をバイナリへ
-	// 左変数ポインタ保存にECX,右にEDXを使う ( 結局破壊のコストから使わなかった )
-	// 戻り値はst(0)に入れる
-	// EBPは常にコールされた時点でのESPを指している
-	// つまりavrs,ansにはEBP経由でアクセス可能
-	// ecalc_bin_printer_treeをネストしてコールする場合cdeclと同様にレジスタを破壊するので
-	// 呼び出し側でスタック位置操作、レジスタ退避などが必要
+	/*
+	 * 左変数ポインタ保存にECX,右にEDXを使う ( 結局破壊のコストから使わなかった )
+	 * 戻り値はst(0)に入れる
+	 * EBPは常にコールされた時点でのESPを指している
+	 * つまりavrs,ansにはEBP経由でアクセス可能
+	 * ecalc_bin_printer_treeをネストしてコールする場合cdeclと同様にレジスタを破壊するので
+	 * 呼び出し側でスタック位置操作、レジスタ退避などが必要
+	 */
 	const int left  = -8;
 	const int right = -16;
 	const int dbuf  = -24;
@@ -510,6 +512,42 @@ void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *token )
 		ecalc_bin_printer_set_address( tree, apos3, pos4 - pos3 );
 
 		break;
+	case ECALC_OPE_EQU:
+		// 同じ
+
+		// st(0)とst(1)を比較
+		ecalc_bin_printer_fcomi( tree, 1 );
+
+		// POP
+		ecalc_bin_printer_fstp_st0( tree );
+		ecalc_bin_printer_fstp_st0( tree );
+
+		// ZF(C3)が1ならst(0)==st(1)なのでpos2までジャンプ
+		apos1 = ecalc_bin_printer_je( tree, 0 );
+
+		// 現在位置保存
+		pos1 = ecalc_bin_printer_get_pos( tree );
+
+		// right != left なので0をPUSH
+		ecalc_bin_printer_fldz( tree );
+
+		// 無条件にpos3の終了までジャンプ
+		apos2 = ecalc_bin_printer_jmp( tree, 0 );
+
+		// 現在位置保存
+		pos2 = ecalc_bin_printer_get_pos( tree );
+
+		// right == left なので1をPUSH
+		ecalc_bin_printer_fld1( tree );
+
+		// 現在位置保存
+		pos3 = ecalc_bin_printer_get_pos( tree );
+
+		// ジャンプアドレス埋め込み
+		ecalc_bin_printer_set_address( tree, apos1, pos2 - pos1 );
+		ecalc_bin_printer_set_address( tree, apos2, pos3 - pos2 );
+
+		break;
 	case ECALC_FUNC_SIN:
 		// sin
 		ecalc_bin_printer_fsin( tree );
@@ -550,7 +588,8 @@ void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *token )
 
 		break;
 	case ECALC_FUNC_POW:
-		// POWER
+	case ECALC_FUNC_ATAN2:
+		// POWER, ATAN2
 
 		// 引数としてleft : arg1, right : arg2をセット
 		ecalc_bin_printer_fstp( tree, arg2 );
@@ -602,9 +641,9 @@ void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *token )
 		// π
 		ecalc_bin_printer_fstp_st0( tree );
 		ecalc_bin_printer_fstp_st0( tree );
-		// ecalc_bin_printer_fldpi( tree );
-		ecalc_bin_printer_store_double_val( tree, dbuf, M_PI );
-		ecalc_bin_printer_fld( tree, dbuf );
+		ecalc_bin_printer_fldpi( tree );
+		// ecalc_bin_printer_store_double_val( tree, dbuf, M_PI );
+		// ecalc_bin_printer_fld( tree, dbuf );
 
 		break;
 	case ECALC_FUNC_EPS0:

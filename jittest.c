@@ -78,6 +78,9 @@ ECALC_CALC:
 		// JIT破棄
 		ecalc_free_jit_tree( jit );
 
+		// 非JIT
+		// ans = ecalc_get_tree_value( tok, vars, ans );
+
 		printf( "\t%lf\n", ans );
 		printf( "\t0x%X\n", (int)ans );
 		printf( "\t%e\n", ans );
