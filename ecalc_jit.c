@@ -1119,7 +1119,7 @@ void ecalc_bin_printer_load_exp_ans_ptr_to_eax(ECALC_JIT_TREE *tree)
 void ecalc_bin_printer_load_exp_var_ptr_to_eax( ECALC_JIT_TREE *tree, int index )
 {
 	// eaxにvar[index]のポインタをセット
-	unsigned char bin[] = {0x8D, 0x04, 0x98};
+	unsigned char bin[] = {0x8D, 0x04, 0x90};
 
 	// EAXにdouble**の場所をロード
 	ecalc_bin_printer_load_arg_ptr_to_eax( tree, 8 );
