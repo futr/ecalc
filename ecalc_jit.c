@@ -14,6 +14,11 @@ ECALC_JIT_TREE *ecalc_create_jit_tree( struct ECALC_TOKEN *token )
 	size_t size;
 	ECALC_JIT_TREE *tree;
 
+	// tokenがNULLなら何もしない
+	if ( token == NULL ) {
+        return NULL;
+    }
+
 	// 構造体確保
 	tree = (ECALC_JIT_TREE *)malloc( sizeof(ECALC_JIT_TREE) );
 	ecalc_bin_printer_reset_tree( tree );
@@ -35,6 +40,11 @@ ECALC_JIT_TREE *ecalc_create_jit_tree( struct ECALC_TOKEN *token )
 void ecalc_free_jit_tree( ECALC_JIT_TREE *tree )
 {
 	// JITエンジン破棄
+
+    // NULLなら何もしない
+    if ( tree == NULL ) {
+        return;
+    }
 
 	// 実行可能メモリ空間破棄
 	ecalc_free_jit_memory( tree->data );
@@ -66,6 +76,11 @@ double ecalc_get_jit_tree_value( ECALC_JIT_TREE *tree, double **vars, double ans
 	// JIT木の値を取得
 	double ret;
 	double ( *func )( double **vars, double ans );
+	
+    // NULLなら何もしない
+    if ( tree == NULL ) {
+        return 0;
+    }
 
 	// 関数ポインタセット
 	func = ( double (*)( double **, double ) )tree->data;
