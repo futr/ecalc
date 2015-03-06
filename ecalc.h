@@ -30,6 +30,7 @@ enum ecalc_connector {                                      /* 接続子 ( 演�
 	ECALC_OPE_LOOP,                                         /* 繰り返し */
 	ECALC_OPE_LBIG,                                         /* > 左が大きい */
 	ECALC_OPE_RBIG,                                         /* < 右が大きい */
+	ECALC_OPE_EQU,											/* == 等号 */
 	ECALC_OPE_ERR,                                          /* 文法エラー */
 
 	ECALC_FUNC_PI,                                          /* π */

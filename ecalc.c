@@ -5,17 +5,19 @@
 /* IF文は、左辺が真の場合は右辺の式を評価し、式自体の値は左辺となる */
 /* 角度モードはCのライブラリに依存 ( 多分ラジアン ) */
 /* 計算は全てdoubleで、円周率の値はM_PI */
+// (y)atan2(x)の順番
 
 /* 演算子優先度風
- 1 | ()    | カッコ  | ->
- 2 | 関数  | 関数    | ->
- 3 | +,-   | 単項-.+ | ->
- 4 | *,/,% | 乗除算  | ->
- 5 | +,-   | 加減算  | ->
- 6 | <,>   | 比較    | ->
- 7 | @     | ループ  | <-
- 8 | =     | 代入    | <-
- 9 | ,     | 区切り  | ->
+  1 | ()    | カッコ  | ->
+  2 | 関数  | 関数    | ->
+  3 | +,-   | 単項-.+ | ->
+  4 | *,/,% | 乗除算  | ->
+  5 | +,-   | 加減算  | ->
+  6 | <,>   | 比較    | ->
+  7 | ==    | 同じ    | ->
+  8 | @     | ループ  | <-
+  9 | =     | 代入    | <-
+ 10 | ,     | 区切り  | ->
 */
 
 /* 予約語リスト */
@@ -36,6 +38,7 @@ static struct ECALC_RESERVED_CONTAINER ecalc_reserved[] = {
 	{ "DEG",   ECALC_TOKEN_FUNC_ONE, ECALC_FUNC_DEG,   NULL },
 	{ "POW",   ECALC_TOKEN_FUNC_TWO, ECALC_FUNC_POW,   (void (*)( void ))pow },
 	{ "POWER", ECALC_TOKEN_FUNC_TWO, ECALC_FUNC_POW,   (void (*)( void ))pow },
+	{ "ATAN2", ECALC_TOKEN_FUNC_TWO, ECALC_FUNC_ATAN2, (void (*)( void ))atan2 },
 	{ "MOD",   ECALC_TOKEN_FUNC_TWO, ECALC_OPE_MOD,    (void (*)( void ))fmod },
 	{ "IF",    ECALC_TOKEN_FUNC_TWO, ECALC_FUNC_IF,    NULL }
 };
@@ -113,6 +116,8 @@ struct ECALC_TOKEN *ecalc_make_token( char *text )
 	char *point;
 	char buf[ECALC_MAX_TOKEN_LENGTH];
 	int i;
+	size_t len;
+	int index;
 	int resvs;
 
 	/* 関数の数 */
@@ -169,7 +174,10 @@ L_ECALC_ANSYS:
 	} else if ( isalpha( *text ) ) {
 		/* アルファベットだった */
 
-		/* 予約語検索 */
+		/* 最長一致する予約語検索 */
+		len = 0;
+		index = -1;
+
 		for ( i = 0; i < resvs; i++ ) {
 			if ( ecalc_strncmp( text, ecalc_reserved[i].text, strlen( ecalc_reserved[i].text ) ) == 0 ) {
 				/* 予約語発見 */
@@ -177,15 +185,15 @@ L_ECALC_ANSYS:
 				ret->value = ecalc_reserved[i].value;
 				strcpy( ret->str, ecalc_reserved[i].text );
 
-				/* 文字列分すすめる */
-				text += strlen( ecalc_reserved[i].text );
-
-				break;
+				if ( len < strlen( ecalc_reserved[i].text ) ) {
+					len = strlen( ecalc_reserved[i].text );
+					index = i;
+				}
 			}
 		}
 
 		/* 関数に一致しなかったので変数として処理 */
-		if ( i >= resvs ) {
+		if ( index < 0 ) {
 			ret->type  = ECALC_TOKEN_VAR;
 			ret->value = toupper( *text ) - 0x41;
 
@@ -194,6 +202,9 @@ L_ECALC_ANSYS:
 
 			/* 一個進む */
 			text++;
+		} else {
+			/* 関数に一致したので文字列分すすめる */
+			text += strlen( ecalc_reserved[index].text );
 		}
 	} else if ( *text == '(' ) {
 		/* 左括弧 */
@@ -305,16 +316,31 @@ L_ECALC_ANSYS:
 		/* 一個進む */
 		text++;
 	} else if ( *text == '=' ) {
-		/* 代入 */
+		/* = */
 
-		ret->type  = ECALC_TOKEN_OPE;
-		ret->value = ECALC_OPE_STI;
+		/* 次も=か */
+		if ( *(text + 1) == '=' ) {
+			/* ==だった */
+			ret->type  = ECALC_TOKEN_OPE;
+			ret->value = ECALC_OPE_EQU;
 
-		*(ret->str)     = *text;
-		*(ret->str + 1) = '\0';
+			*(ret->str)     = *text;
+			*(ret->str + 1) = *(text + 1);
+			*(ret->str + 2) = '\0';
 
-		/* 一個進む */
-		text++;
+			/* 2個進む */
+			text += 2;
+		} else {
+			/* 代入だった */
+			ret->type  = ECALC_TOKEN_OPE;
+			ret->value = ECALC_OPE_STI;
+
+			*(ret->str)     = *text;
+			*(ret->str + 1) = '\0';
+
+			/* 一個進む */
+			text++;
+		}
 	} else if ( *text == ',' ) {
 		/* 区切り */
 
@@ -644,7 +670,7 @@ L_ECALC_RECHECK_BIG:
 		if ( ecalc_token_is_value( next ) ) {
 			/* 次がある */
 			if ( next->next != NULL ) {
-				/* つぎが+-だった */
+				/* つぎが<>だった */
 				if ( ( next->next->type == ECALC_TOKEN_OPE ) &&
 					 ( ( next->next->value == ECALC_OPE_RBIG ) || ( next->next->value == ECALC_OPE_LBIG ) ) ) {
 					/* 右辺値が存在する */
@@ -663,9 +689,34 @@ L_ECALC_RECHECK_BIG:
 		}
 	}
 
+L_ECALC_RECHECK_EQU:
+
+	/* 比較演算子 優先度7 */
+	for ( next = top; next != NULL; next = next->next ) {
+		if ( ecalc_token_is_value( next ) ) {
+			/* 次がある */
+			if ( next->next != NULL ) {
+				/* つぎが==だった */
+				if ( ( next->next->type == ECALC_TOKEN_OPE ) && ( next->next->value == ECALC_OPE_EQU ) ) {
+					/* 右辺値が存在する */
+					if ( next->next->next != NULL ) {
+						/* 処理可能 */
+						if ( ecalc_token_is_value( next->next->next ) ) {
+							/* 演算 */
+							ecalc_make_exp( next );
+
+							/* 処理したが、自分自身をもう一度評価して欲しいので、forに入り直す */
+							goto L_ECALC_RECHECK_EQU;
+						}
+					}
+				}
+			}
+		}
+	}
+
 L_ECALC_RECHECK_LOOP:
 
-	/* ループ 結合方向 <- 優先度7 */
+	/* ループ 結合方向 <- 優先度8 */
 	for ( next = top, b_tok = NULL; next != NULL; next = next->next ) {
 		/* ループ記号を一番右まで調査 */
 		if ( ecalc_token_is_value( next ) ) {
@@ -697,7 +748,7 @@ L_ECALC_RECHECK_LOOP:
 
 L_ECALC_RECHECK_STI:
 
-	/* 代入 結合方向 <- 優先度8 */
+	/* 代入 結合方向 <- 優先度9 */
 	for ( next = top, b_tok = NULL; next != NULL; next = next->next ) {
 		/* =を一番右まで調査 */
 		if ( next->type == ECALC_TOKEN_VAR ) {
@@ -729,7 +780,7 @@ L_ECALC_RECHECK_STI:
 
 L_ECALC_RECHECK_SEPA:
 
-	/* 式区切り 優先度9 */
+	/* 式区切り 優先度10 */
 	for ( next = top; next != NULL; next = next->next ) {
 		if ( ecalc_token_is_value( next ) ) {
 			/* 次がある */
@@ -912,70 +963,74 @@ double ecalc_get_tree_value( struct ECALC_TOKEN *token, double **vars, double an
 
 	/* 計算 */
 	switch ( (int)token->value ) {
-		case ECALC_OPE_ADD:                 /* 足し算 */
-			return left + right;
-		case ECALC_OPE_SUB:                 /* 引き算 */
-			return left - right;
-		case ECALC_OPE_MUL:                 /* 掛け算 */
-			return left * right;
-		case ECALC_OPE_DIV:                 /* 割り算 */
-			/* / 0はエラーを発生させない */
-			if ( right == 0 ) {
-				return 0;
-			} else {
-				return left / right;
-			}
-		case ECALC_OPE_MOD:                 /* 余り */
-			/* % 0はエラーを発生させない */
-			if ( right == 0 ) {
-				return 0;
-			} else {
-				return ( (int)left % (int)right );
-			}
-		case ECALC_OPE_STI:                 /* 代入 */
-			return ( *left_var = right );
-		case ECALC_OPE_SEPA:                /* 区切り */
-			return right;
-		case ECALC_OPE_LOOP:                /* 繰り返し */
-			return right;
-		case ECALC_OPE_LBIG:                /* 左が大きい */
-			return ( left > right );
-		case ECALC_OPE_RBIG:                /* 右が大きい */
-			return ( left < right );
-		case ECALC_FUNC_SIN:                /* sin */
-			return sin( right );
-		case ECALC_FUNC_COS:                /* cos */
-			return cos( right );
-		case ECALC_FUNC_TAN:                /* tan */
-			return tan( right );
-		case ECALC_FUNC_ASIN:               /* asin */
-			return asin( right );
-		case ECALC_FUNC_ACOS:               /* acos */
-			return acos( right );
-		case ECALC_FUNC_ATAN:               /* atan */
-			return atan( right );
-		case ECALC_FUNC_LOG10:              /* log10 */
-			return log10( right );
-		case ECALC_FUNC_LOGN:               /* logn */
-			return log( right );
-		case ECALC_FUNC_SQRT:               /* root */
-			return sqrt( right );
-		case ECALC_FUNC_POW:                /* power */
-			return pow( left, right );
-		case ECALC_FUNC_RAD:                /* rad */
-			return ( ( right / 180 ) * M_PI );
-		case ECALC_FUNC_DEG:                /* deg */
-			return ( ( right / M_PI ) * 180.0 );
-		case ECALC_FUNC_PI:                 /* π */
-			return M_PI;
-		case ECALC_FUNC_EPS0:               /* ε0 */
-			return 8.85418782e-12;
-		case ECALC_FUNC_ANS:                /* ans */
-			return ans;
-		case ECALC_FUNC_IF:                 /* if文 */
-			return right;
-		default:
+	case ECALC_OPE_ADD:                 /* 足し算 */
+		return left + right;
+	case ECALC_OPE_SUB:                 /* 引き算 */
+		return left - right;
+	case ECALC_OPE_MUL:                 /* 掛け算 */
+		return left * right;
+	case ECALC_OPE_DIV:                 /* 割り算 */
+		/* / 0はエラーを発生させない */
+		if ( right == 0 ) {
 			return 0;
+		} else {
+			return left / right;
+		}
+	case ECALC_OPE_MOD:                 /* 余り */
+		/* % 0はエラーを発生させない */
+		if ( right == 0 ) {
+			return 0;
+		} else {
+			return ( (int)left % (int)right );
+		}
+	case ECALC_OPE_STI:                 /* 代入 */
+		return ( *left_var = right );
+	case ECALC_OPE_SEPA:                /* 区切り */
+		return right;
+	case ECALC_OPE_LOOP:                /* 繰り返し */
+		return right;
+	case ECALC_OPE_LBIG:                /* 左が大きい */
+		return ( left > right );
+	case ECALC_OPE_RBIG:                /* 右が大きい */
+		return ( left < right );
+	case ECALC_OPE_EQU:				    /* 同じ */
+		return ( left == right );
+	case ECALC_FUNC_SIN:                /* sin */
+		return sin( right );
+	case ECALC_FUNC_COS:                /* cos */
+		return cos( right );
+	case ECALC_FUNC_TAN:                /* tan */
+		return tan( right );
+	case ECALC_FUNC_ASIN:               /* asin */
+		return asin( right );
+	case ECALC_FUNC_ACOS:               /* acos */
+		return acos( right );
+	case ECALC_FUNC_ATAN:               /* atan */
+		return atan( right );
+	case ECALC_FUNC_LOG10:              /* log10 */
+		return log10( right );
+	case ECALC_FUNC_LOGN:               /* logn */
+		return log( right );
+	case ECALC_FUNC_SQRT:               /* root */
+		return sqrt( right );
+	case ECALC_FUNC_POW:                /* power */
+		return pow( left, right );
+	case ECALC_FUNC_ATAN2:               /* atan2 */
+		return atan2( left, right );
+	case ECALC_FUNC_RAD:                /* rad */
+		return ( ( right / 180 ) * M_PI );
+	case ECALC_FUNC_DEG:                /* deg */
+		return ( ( right / M_PI ) * 180.0 );
+	case ECALC_FUNC_PI:                 /* π */
+		return M_PI;
+	case ECALC_FUNC_EPS0:               /* ε0 */
+		return 8.85418782e-12;
+	case ECALC_FUNC_ANS:                /* ans */
+		return ans;
+	case ECALC_FUNC_IF:                 /* if文 */
+		return right;
+	default:
+		return 0;
 	}
 }
 
@@ -1052,7 +1107,7 @@ void ( *ecalc_get_func_addr( enum ecalc_connector func ) )( void )
 
 	// 一致する関数を探して返す
 	for ( i = 0; i < resvs; i++ ) {
-		if ( ecalc_reserved[i].value == func ) {
+		if ( ecalc_reserved[i].value == (int)func ) {
 			return ecalc_reserved[i].func;
 		}
 	}
