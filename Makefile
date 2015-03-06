@@ -1,5 +1,5 @@
 # 名前
-SOURCES = main.c ecalc.c ecalc_jit.c
+SOURCES = main.c ecalc.c
 TARGET  = main
 
 LINK = -lm
