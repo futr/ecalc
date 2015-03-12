@@ -4,1278 +4,1278 @@
 #include <windows.h>
 #endif
 
-// ecalcjitƒGƒ“ƒWƒ“ 32bit‚ÌWindows—p
-// o—Í‚·‚éƒoƒCƒiƒŠ‚ª86—pAŒÄ‚Ño‚µ‹K–ñ‚à86—pcdecl‚Å‚·
-// –½—ßƒZƒbƒg‚Íi686ˆÈ~i‚¾‚Æv‚¢‚Ü‚·j
+// ecalcjitã‚¨ãƒ³ã‚¸ãƒ³ 32bitã®Windowsç”¨
+// å‡ºåŠ›ã™ã‚‹ãƒã‚¤ãƒŠãƒªãŒ86ç”¨ã€å‘¼ã³å‡ºã—è¦ç´„ã‚‚86ç”¨cdeclã§ã™
+// å‘½ä»¤ã‚»ãƒƒãƒˆã¯i686ä»¥é™ï¼ˆã ã¨æ€ã„ã¾ã™ï¼‰
 
 ECALC_JIT_TREE *ecalc_create_jit_tree( struct ECALC_TOKEN *token )
 {
-	// JITƒGƒ“ƒWƒ“ì¬
-	size_t size;
-	ECALC_JIT_TREE *tree;
+    // JITã‚¨ãƒ³ã‚¸ãƒ³ä½œæˆ
+    size_t size;
+    ECALC_JIT_TREE *tree;
 
-	// token‚ªNULL‚È‚ç‰½‚à‚µ‚È‚¢
-	if ( token == NULL ) {
+    // tokenãŒNULLãªã‚‰ä½•ã‚‚ã—ãªã„
+    if ( token == NULL ) {
         return NULL;
     }
 
-	// \‘¢‘ÌŠm•Û
-	tree = (ECALC_JIT_TREE *)malloc( sizeof(ECALC_JIT_TREE) );
-	ecalc_bin_printer_reset_tree( tree );
+    // æ§‹é€ ä½“ç¢ºä¿
+    tree = (ECALC_JIT_TREE *)malloc( sizeof(ECALC_JIT_TREE) );
+    ecalc_bin_printer_reset_tree( tree );
 
-	// JIT—Ìˆæ‚Ì—Ê
-	size = ecalc_get_jit_tree_size( tree, token );
+    // JITé ˜åŸŸã®é‡
+    size = ecalc_get_jit_tree_size( tree, token );
 
-	// Às‰Â”\ƒƒ‚ƒŠ‹óŠÔŠm•Û
-	tree->size = size;
-	tree->pos  = 0;
-	tree->data = (unsigned char *)ecalc_allocate_jit_memory( size );
+    // å®Ÿè¡Œå¯èƒ½ãƒ¡ãƒ¢ãƒªç©ºé–“ç¢ºä¿
+    tree->size = size;
+    tree->pos  = 0;
+    tree->data = (unsigned char *)ecalc_allocate_jit_memory( size );
 
-	// ŠÖ”ƒoƒCƒiƒŠo—Í
-	ecalc_bin_printer( tree, token );
+    // é–¢æ•°ãƒã‚¤ãƒŠãƒªå‡ºåŠ›
+    ecalc_bin_printer( tree, token );
 
-	return tree;
+    return tree;
 }
 
 void ecalc_free_jit_tree( ECALC_JIT_TREE *tree )
 {
-	// JITƒGƒ“ƒWƒ“”jŠü
+    // JITã‚¨ãƒ³ã‚¸ãƒ³ç ´æ£„
 
-    // NULL‚È‚ç‰½‚à‚µ‚È‚¢
+    // NULLãªã‚‰ä½•ã‚‚ã—ãªã„
     if ( tree == NULL ) {
         return;
     }
 
-	// Às‰Â”\ƒƒ‚ƒŠ‹óŠÔ”jŠü
-	ecalc_free_jit_memory( tree->data );
+    // å®Ÿè¡Œå¯èƒ½ãƒ¡ãƒ¢ãƒªç©ºé–“ç ´æ£„
+    ecalc_free_jit_memory( tree->data );
 
-	free( tree );
+    free( tree );
 }
 
 void *ecalc_allocate_jit_memory( size_t size )
 {
-	// JIT—pƒoƒCƒiƒŠ‹óŠÔŠm•Û
+    // JITç”¨ãƒã‚¤ãƒŠãƒªç©ºé–“ç¢ºä¿
 #ifdef _WIN32
-	return VirtualAlloc( NULL, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE );
+    return VirtualAlloc( NULL, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE );
 #else
-	return NULL;
+    return NULL;
 #endif
 }
 
 void ecalc_free_jit_memory( void *data )
 {
-	// JIT—pƒoƒCƒiƒŠ‹óŠÔ”jŠü
+    // JITç”¨ãƒã‚¤ãƒŠãƒªç©ºé–“ç ´æ£„
 #ifdef _WIN32
-	VirtualFree( data, 0, MEM_RELEASE );
+    VirtualFree( data, 0, MEM_RELEASE );
 #else
 #endif
 }
 
 double ecalc_get_jit_tree_value( ECALC_JIT_TREE *tree, double **vars, double ans )
 {
-	// JIT–Ø‚Ì’l‚ğæ“¾
-	double ret;
-	double ( *func )( double **vars, double ans );
-	
-    // NULL‚È‚ç‰½‚à‚µ‚È‚¢
+    // JITæœ¨ã®å€¤ã‚’å–å¾—
+    double ret;
+    double ( *func )( double **vars, double ans );
+
+    // NULLãªã‚‰ä½•ã‚‚ã—ãªã„
     if ( tree == NULL ) {
         return 0;
     }
 
-	// ŠÖ”ƒ|ƒCƒ“ƒ^ƒZƒbƒg
-	func = ( double (*)( double **, double ) )tree->data;
+    // é–¢æ•°ãƒã‚¤ãƒ³ã‚¿ã‚»ãƒƒãƒˆ
+    func = ( double (*)( double **, double ) )tree->data;
 
-	// Às
-	ret = func( vars, ans );
+    // å®Ÿè¡Œ
+    ret = func( vars, ans );
 
-	return ret;
+    return ret;
 }
 
 size_t ecalc_get_jit_tree_size( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *token )
 {
-	// •K—v‚Èƒƒ‚ƒŠ—Ê‚ğ(‘½‚ß‚ÉG‚É)ŒvZ
-	size_t size = 0;
+    // å¿…è¦ãªãƒ¡ãƒ¢ãƒªé‡ã‚’(å¤šã‚ã«é›‘ã«)è¨ˆç®—
+    size_t size = 0;
 
-	// tree->data‚ªNULL‚Ìó‘Ô‚Åˆóü‚·‚é‚±‚Æ‚Åtree->pos‚©‚çƒTƒCƒY‚ª•ª‚©‚é
-	ecalc_bin_printer( tree, token );
+    // tree->dataãŒNULLã®çŠ¶æ…‹ã§å°åˆ·ã™ã‚‹ã“ã¨ã§tree->posã‹ã‚‰ã‚µã‚¤ã‚ºãŒåˆ†ã‹ã‚‹
+    ecalc_bin_printer( tree, token );
 
-	// ŠÖ”ƒoƒCƒiƒŠo—ÍˆÊ’u‚©‚çƒTƒCƒY‚ğæ“¾
-	size = tree->pos;
+    // é–¢æ•°ãƒã‚¤ãƒŠãƒªå‡ºåŠ›ä½ç½®ã‹ã‚‰ã‚µã‚¤ã‚ºã‚’å–å¾—
+    size = tree->pos;
 
-	return size;
+    return size;
 }
 
 void ecalc_bin_printer( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *token )
 {
-	// ƒoƒCƒiƒŠo—ÍŠJn
+    // ãƒã‚¤ãƒŠãƒªå‡ºåŠ›é–‹å§‹
 
-	// ŠÖ”ŠJn
-	ecalc_bin_printer_opening( tree );
+    // é–¢æ•°é–‹å§‹
+    ecalc_bin_printer_opening( tree );
 
-	// –Ø‚ğJIT‚É“WŠJ
-	ecalc_bin_printer_tree( tree, token );
+    // æœ¨ã‚’JITã«å±•é–‹
+    ecalc_bin_printer_tree( tree, token );
 
-	// ŠÖ”I—¹
-	ecalc_bin_printer_closing( tree );
+    // é–¢æ•°çµ‚äº†
+    ecalc_bin_printer_closing( tree );
 }
 
 void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *token )
 {
-	// –Ø‚ğƒoƒCƒiƒŠ‚Ö
-	/*
-	 * eax‚Íƒ|ƒCƒ“ƒ^ƒŒƒWƒXƒ^Aecx‚Íeax‚Ìƒoƒbƒtƒ@Aedx‚Í’è”ƒŒƒWƒXƒ^‚Æ‚µ‚½
-	 * ebx‚Í•Û‘¶‚µ‚È‚¯‚ê‚Î‚È‚ç‚È‚¢‚Ì‚Åg‚Á‚Ä‚¢‚È‚¢
-	 * –ß‚è’l‚Íst(0)‚É“ü‚ê‚é
-	 * EBP‚Íí‚ÉƒR[ƒ‹‚³‚ê‚½“_‚Å‚ÌESP‚ğw‚µ‚Ä‚¢‚é
-	 * ‚Â‚Ü‚èavrs,ans‚É‚ÍEBPŒo—R‚ÅƒAƒNƒZƒX‰Â”\
-	 * ecalc_bin_printer_tree‚ğƒlƒXƒg‚µ‚ÄƒR[ƒ‹‚·‚éê‡cdecl‚Æ“¯—l‚ÉƒŒƒWƒXƒ^‚ğ”j‰ó‚·‚é‚Ì‚Å
-	 * ŒÄ‚Ño‚µ‘¤‚ÅƒXƒ^ƒbƒNˆÊ’u‘€ìAƒŒƒWƒXƒ^‘Ş”ğ‚È‚Ç‚ª•K—v
-	 */
-	const int left  = -8;
-	const int right = -16;
-	const int dbuf  = -24;
-	const int arg2  = -32;
-	const int arg1  = -40;
-	int depth = 40;
-	size_t pos1, pos2, pos3, pos4, apos1, apos2, apos3;
-
-	// EAX‚ğŒ»İ‚ÌƒXƒ^ƒbƒNƒgƒbƒv‚É
-	ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
-
-	// EXPˆÈŠO‚È‚ç‹­§ƒ[ƒ
-	if ( token->type != ECALC_TOKEN_EXP ) {
-		ecalc_bin_printer_store_double_val( tree, dbuf, 0 );
-		ecalc_bin_printer_fld( tree, dbuf );
-
-		return;
-	}
-
-	// left, right‚ğ0ƒNƒŠƒA
-	ecalc_bin_printer_store_double_val( tree, left, 0 );
-	ecalc_bin_printer_store_double_val( tree, right, 0 );
-
-	// ¶•Ó’lˆ—
-	if ( token->left != NULL ) {
-		if ( token->left->type == ECALC_TOKEN_LITE ) {
-			// ¶•Ó’l’è”ƒŠƒeƒ‰ƒ‹‚ğ¶‚ÉƒZƒbƒg
-			ecalc_bin_printer_store_double_val( tree, left, token->left->value );
-		} else if ( token->left->type == ECALC_TOKEN_VAR ) {
-			// ¶•Ó’l•Ï”’l‚ğ¶‚ÉƒZƒbƒg
-			ecalc_bin_printer_load_exp_var_ptr_to_eax( tree, token->left->value );
-			ecalc_bin_printer_fld( tree, 0 );
-			ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
-			ecalc_bin_printer_fstp( tree, left );
-		} else if ( token->left->type == ECALC_TOKEN_EXP ) {
-			// ¶•Ó‚ª®‚¾‚Á‚½ê‡‚³‚ç‚ÉJIT“WŠJ‚µ–ß‚è’nst(0)‚ğ¶‚ÉƒZƒbƒg
-			ecalc_bin_printer_add_esp_i8( tree, -depth );
-			ecalc_bin_printer_tree( tree, token->left );
-			ecalc_bin_printer_add_esp_i8( tree, +depth );
-			ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
-			ecalc_bin_printer_fstp( tree, left );
-		} else {
-			// ¶‚ğ0‚É
-			ecalc_bin_printer_store_double_val( tree, left, 0 );
-		}
-	}
-
-	// ‰E•Óæ“¾
-	if ( token->right != NULL ) {
-		if ( token->right->type == ECALC_TOKEN_LITE ) {
-			// ‰E•Ó’l’è”ƒŠƒeƒ‰ƒ‹‚ğ‰E‚ÉƒZƒbƒg
-			ecalc_bin_printer_store_double_val( tree, right, token->right->value );
-		} else if ( token->right->type == ECALC_TOKEN_VAR ) {
-			// ‰E•Ó’l•Ï”’l‚ğ‰E‚ÉƒZƒbƒg
-			ecalc_bin_printer_load_exp_var_ptr_to_eax( tree, token->right->value );
-			ecalc_bin_printer_fld( tree, 0 );
-			ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
-			ecalc_bin_printer_fstp( tree, right );
-		} else if ( token->right->type == ECALC_TOKEN_EXP ) {
-			// ‰E•Ó‚ğ®‚Æ‚µ‚Äˆµ‚¤ê‡A‚±‚±‚Åˆ—
-			if ( token->value == ECALC_OPE_LOOP ) {
-				// ƒ‹[ƒvˆ— (@®)
-				// st(0) : ƒJƒEƒ“ƒ^(‰Šú’l0)
-				// st(1) : 1
-				// st(2) : left(ƒ‹[ƒv‰ñ”)
-				// ‚Æ‚µ‚Ä”äŠrÀs
-
-				// for ( i = 0; i != left; i++ ) {
-
-				// PUSH
-				ecalc_bin_printer_fld( tree, left );
-				ecalc_bin_printer_fld1( tree );
-				ecalc_bin_printer_fldz( tree );
-
-				// Œ»İˆÊ’u•Û‘¶
-				pos1 = ecalc_bin_printer_get_pos( tree );
-
-				// st(0)‚Æst(2)‚ğ”äŠr
-				ecalc_bin_printer_fcomi( tree, 2 );
-
-				// ZF(C3)‚ª1‚È‚çst(0)==st(2)‚È‚Ì‚Åpos3‚Ü‚ÅƒWƒƒƒ“ƒv
-				apos1 = ecalc_bin_printer_je( tree, 0 );
-
-				// Œ»İˆÊ’u•Û‘¶
-				pos2 = ecalc_bin_printer_get_pos( tree );
-
-				// POP
-				ecalc_bin_printer_fstp( tree, dbuf );
-				ecalc_bin_printer_fstp_st0( tree );
-				ecalc_bin_printer_fstp_st0( tree );
-
-				// Às
-				ecalc_bin_printer_add_esp_i8( tree, -depth );
-				ecalc_bin_printer_tree( tree, token->right );
-				ecalc_bin_printer_add_esp_i8( tree, +depth );
-				ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
-				ecalc_bin_printer_fstp( tree, right );
-
-				// PUSH
-				ecalc_bin_printer_fld( tree, left );
-				ecalc_bin_printer_fld1( tree );
-				ecalc_bin_printer_fld( tree, dbuf );
-
-				// ƒCƒ“ƒNƒŠƒƒ“ƒg
-				ecalc_bin_printer_fadd( tree, 1 );
-
-				// pos1‚Ì”äŠr‚Ü‚Å–ß‚é
-				apos2 = ecalc_bin_printer_jmp( tree, 0 );
-
-				// Œ»İˆÊ’u•Û‘¶
-				pos3 = ecalc_bin_printer_get_pos( tree );
-
-				// ƒWƒƒƒ“ƒvƒAƒhƒŒƒX–„‚ß‚İ
-				ecalc_bin_printer_set_address( tree, apos1, pos3 - pos2 );
-				ecalc_bin_printer_set_address( tree, apos2, pos1 - pos3 );
-
-				// FPUƒXƒ^ƒbƒNƒNƒŠƒA
-				ecalc_bin_printer_fstp_st0( tree );
-				ecalc_bin_printer_fstp_st0( tree );
-				ecalc_bin_printer_fstp_st0( tree );
-
-				// }
-			} else if ( token->value == ECALC_FUNC_IF ) {
-				// if®
-				// st(0) : 0
-				// st(1) : left
-				// ‚Æ‚µ‚Ä”äŠr
-
-				// PUSH
-				ecalc_bin_printer_fldz( tree );
-				ecalc_bin_printer_fld( tree, left );
-
-				// st(0)‚Æst(1)‚ğ”äŠr
-				ecalc_bin_printer_fcomi( tree, 1 );
-
-				// ZF(FPU‚ÌC3)‚ª1‚È‚çst(0)==st(1)‚È‚Ì‚Åpos2‚Ü‚ÅƒWƒƒƒ“ƒv
-				apos1 = ecalc_bin_printer_je( tree, 0 );
-
-				// Œ»İˆÊ’u•Û‘¶
-				pos1 = ecalc_bin_printer_get_pos( tree );
-
-				// POP
-				ecalc_bin_printer_fstp_st0( tree );
-				ecalc_bin_printer_fstp_st0( tree );
-
-				// Às ( ‰E‚Ì’l‚Íg‚í‚È‚¢‚Ì‚ÅÅŒã‚Ìstp‚Í‚½‚¾‚ÌPOP‚Å‚à‚æ‚¢ )
-				ecalc_bin_printer_add_esp_i8( tree, -depth );
-				ecalc_bin_printer_tree( tree, token->right );
-				ecalc_bin_printer_add_esp_i8( tree, +depth );
-				ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
-				ecalc_bin_printer_fstp( tree, right );
-
-				// ƒ_ƒ~[PUSH
-				ecalc_bin_printer_fldz( tree );
-				ecalc_bin_printer_fldz( tree );
-
-				// Œ»İˆÊ’u•Û‘¶
-				pos2 = ecalc_bin_printer_get_pos( tree );
-
-				// ƒWƒƒƒ“ƒvƒAƒhƒŒƒX–„‚ß‚İ
-				ecalc_bin_printer_set_address( tree, apos1, pos2 - pos1 );
-
-				// FPUƒXƒ^ƒbƒNƒNƒŠƒA
-				ecalc_bin_printer_fstp_st0( tree );
-				ecalc_bin_printer_fstp_st0( tree );
-
-				// right = left
-				ecalc_bin_printer_fld( tree, left );
-				ecalc_bin_printer_fstp( tree, right );
-			} else {
-				// ‰E•Ó‚Ì®ˆ—
-				ecalc_bin_printer_add_esp_i8( tree, -depth );
-				ecalc_bin_printer_tree( tree, token->right );
-				ecalc_bin_printer_add_esp_i8( tree, +depth );
-				ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
-				ecalc_bin_printer_fstp( tree, right );
-			}
-		} else {
-			// ‰E‚ğ0‚É
-			ecalc_bin_printer_store_double_val( tree, right, 0 );
-		}
-	}
-
-	// st(1) = left, st(0) = right
-	ecalc_bin_printer_fld( tree, left );
-	ecalc_bin_printer_fld( tree, right );
-
-	// ŒvZ Œ‹‰Ê‚ÍƒXƒ^ƒbƒNƒŒƒxƒ‹‚ª2‚Ìó‘Ô‚Åst(0)‚É“ü‚Á‚Ä‚¢‚é‚à‚Ì‚Æ‚·‚é
-	// ‚»‚ê‚¼‚ê©•ª‚Ìcase“à‚Åst(0)‚ÉŒ‹‰Ê‚ğ“ü‚ê‚ÄƒXƒ^ƒbƒNƒŒƒxƒ‹‚ğ1‚É‚·‚é
-	switch ( (int)token->value ) {
-	case ECALC_OPE_ADD:
-		// ‘«‚µZ
-		ecalc_bin_printer_faddp( tree );
-		break;
-	case ECALC_OPE_SUB:
-		// ˆø‚«Z
-		ecalc_bin_printer_fsubp( tree );
-		break;
-	case ECALC_OPE_MUL:
-		// Š|‚¯Z
-		ecalc_bin_printer_fmulp( tree );
-		break;
-	case ECALC_OPE_DIV:
-		// Š„‚èZ
-		// / 0‚ÍƒGƒ‰[‚ğ”­¶‚³‚¹‚È‚¢
-		// st(0) = 0‚Æ‚µ‚Äst(1) : right‚Æ”äŠr
-		ecalc_bin_printer_fldz( tree );
-		ecalc_bin_printer_fcomi( tree, 1 );
-
-		// right == 0‚È‚çpos2‚Ö”ò‚Ô
-		apos1 = ecalc_bin_printer_je( tree, 0 );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos1 = ecalc_bin_printer_get_pos( tree );
-
-		// right != 0‚È‚Ì‚ÅŠ„‚èZ
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fdivp( tree );
-
-		// –³ğŒ‚Épos3‚ÌI—¹‚Ü‚ÅƒWƒƒƒ“ƒv
-		apos2 = ecalc_bin_printer_jmp( tree, 0 );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos2 = ecalc_bin_printer_get_pos( tree );
-
-		// right == 0‚È‚Ì‚Åst(0)=0‚Æ‚·‚é
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fldz( tree );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos3 = ecalc_bin_printer_get_pos( tree );
-
-		// ƒWƒƒƒ“ƒvƒAƒhƒŒƒXŒˆ’è
-		ecalc_bin_printer_set_address( tree, apos1, pos2 - pos1 );
-		ecalc_bin_printer_set_address( tree, apos2, pos3 - pos2 );
-
-		break;
-	case ECALC_OPE_MOD:
-		// —]‚è
-		// % 0‚ÍƒGƒ‰[‚ğ”­¶‚³‚¹‚È‚¢
-		// st(0) = 0‚Æ‚µ‚Äst(1) : right‚Æ”äŠr
-		ecalc_bin_printer_fldz( tree );
-		ecalc_bin_printer_fcomi( tree, 1 );
-
-		// right == 0‚È‚çpos2‚Ö”ò‚Ô
-		apos1 = ecalc_bin_printer_je( tree, 0 );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos1 = ecalc_bin_printer_get_pos( tree );
-
-		// right != 0‚È‚Ì‚Å—]‚è‚ğŒvZ
-		// ˆø”POP and PUSH
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fstp( tree, arg2 );
-		ecalc_bin_printer_fstp( tree, arg1 );
-
-		// ŠÖ”ƒ|ƒCƒ“ƒ^‚ğeax‚Éƒ[ƒhEƒR[ƒ‹
-		ecalc_bin_printer_load_function_ptr_to_eax( tree, ecalc_get_func_addr( token->value ) );
-		ecalc_bin_printer_add_esp_i8( tree, -depth );
-		ecalc_bin_printer_call( tree );
-		ecalc_bin_printer_add_esp_i8( tree, +depth );
-		ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
-
-		// –³ğŒ‚Épos3‚ÌI—¹‚Ü‚ÅƒWƒƒƒ“ƒv
-		apos2 = ecalc_bin_printer_jmp( tree, 0 );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos2 = ecalc_bin_printer_get_pos( tree );
-
-		// right == 0‚È‚Ì‚Åst(0)=0, st(1)=right‚Æ‚·‚é
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fldz( tree );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos3 = ecalc_bin_printer_get_pos( tree );
-
-		// ƒWƒƒƒ“ƒvƒAƒhƒŒƒXŒˆ’è
-		ecalc_bin_printer_set_address( tree, apos1, pos2 - pos1 );
-		ecalc_bin_printer_set_address( tree, apos2, pos3 - pos2 );
-
-		break;
-	case ECALC_OPE_STI:
-		// ‘ã“ü
-		// ¶•Ó•Ï”ƒ|ƒCƒ“ƒ^‚ğEAX‚Éƒ[ƒh
-		ecalc_bin_printer_load_exp_var_ptr_to_eax( tree, token->left->value );
-
-		// ‘ã“ü
-		ecalc_bin_printer_fstp( tree, 0 );
-		ecalc_bin_printer_fstp_st0( tree );
-
-		// st(0)ƒZƒbƒg
-		ecalc_bin_printer_fld( tree, 0 );
-
-		// EAX•œ‹A
-		ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
-
-		break;
-	case ECALC_OPE_SEPA:
-		// ‹æØ‚è
-		ecalc_bin_printer_fxch_st1( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-		break;
-	case ECALC_OPE_LOOP:
-		// ŒJ‚è•Ô‚µ
-		ecalc_bin_printer_fxch_st1( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-		break;
-	case ECALC_OPE_LBIG:
-		// ¶‚ª‘å‚«‚¢
-
-		// st(0)‚Æst(1)‚ğ”äŠr
-		ecalc_bin_printer_fcomi( tree, 1 );
-
-		// POP
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-
-		// ZF(C3)‚ª1‚È‚çst(0)==st(1)‚È‚Ì‚Åpos2‚Ü‚ÅƒWƒƒƒ“ƒv
-		apos1 = ecalc_bin_printer_je( tree, 0 );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos1 = ecalc_bin_printer_get_pos( tree );
-
-		// CF(FPU‚ÌC0)‚ª1‚È‚çst(0) < st(1)‚È‚Ì‚Åpos3‚Ü‚ÅƒWƒƒƒ“ƒv
-		apos2 = ecalc_bin_printer_jb( tree, 0 );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos2 = ecalc_bin_printer_get_pos( tree );
-
-		// left <= right ‚È‚Ì‚Å0‚ğPUSH
-		ecalc_bin_printer_fldz( tree );
-
-		// –³ğŒ‚Épos3‚ÌI—¹‚Ü‚ÅƒWƒƒƒ“ƒv
-		apos3 = ecalc_bin_printer_jmp( tree, 0 );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos3 = ecalc_bin_printer_get_pos( tree );
-
-		// right < left ‚È‚Ì‚Å1‚ğPUSH
-		ecalc_bin_printer_fld1( tree );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos4 = ecalc_bin_printer_get_pos( tree );
-
-		// ƒWƒƒƒ“ƒvƒAƒhƒŒƒX–„‚ß‚İ
-		ecalc_bin_printer_set_address( tree, apos1, pos2 - pos1 );
-		ecalc_bin_printer_set_address( tree, apos2, pos3 - pos2 );
-		ecalc_bin_printer_set_address( tree, apos3, pos4 - pos3 );
-
-		break;
-	case ECALC_OPE_RBIG:
-		// ‰E‚ª‘å‚«‚¢
-
-		// st(0)‚Æst(1)‚ğ”äŠr
-		ecalc_bin_printer_fcomi( tree, 1 );
-
-		// POP
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-
-		// ZF(C3)‚ª1‚È‚çst(0)==st(1)‚È‚Ì‚Åpos3‚Ü‚ÅƒWƒƒƒ“ƒv
-		apos1 = ecalc_bin_printer_je( tree, 0 );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos1 = ecalc_bin_printer_get_pos( tree );
-
-		// CF(FPU‚ÌC0)‚ª1‚È‚çst(0) < st(1)‚È‚Ì‚Åpos3‚Ü‚ÅƒWƒƒƒ“ƒv
-		apos2 = ecalc_bin_printer_jb( tree, 0 );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos2 = ecalc_bin_printer_get_pos( tree );
-
-		// right > left ‚È‚Ì‚Å1‚ğPUSH
-		ecalc_bin_printer_fld1( tree );
-
-		// –³ğŒ‚Épos3‚ÌI—¹‚Ü‚ÅƒWƒƒƒ“ƒv
-		apos3 = ecalc_bin_printer_jmp( tree, 0 );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos3 = ecalc_bin_printer_get_pos( tree );
-
-		// right <= left ‚È‚Ì‚Å0‚ğPUSH
-		ecalc_bin_printer_fldz( tree );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos4 = ecalc_bin_printer_get_pos( tree );
-
-		// ƒWƒƒƒ“ƒvƒAƒhƒŒƒX–„‚ß‚İ
-		ecalc_bin_printer_set_address( tree, apos1, pos3 - pos1 );
-		ecalc_bin_printer_set_address( tree, apos2, pos3 - pos2 );
-		ecalc_bin_printer_set_address( tree, apos3, pos4 - pos3 );
-
-		break;
-	case ECALC_OPE_EQU:
-		// “¯‚¶
-
-		// st(0)‚Æst(1)‚ğ”äŠr
-		ecalc_bin_printer_fcomi( tree, 1 );
-
-		// POP
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-
-		// ZF(C3)‚ª1‚È‚çst(0)==st(1)‚È‚Ì‚Åpos2‚Ü‚ÅƒWƒƒƒ“ƒv
-		apos1 = ecalc_bin_printer_je( tree, 0 );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos1 = ecalc_bin_printer_get_pos( tree );
-
-		// right != left ‚È‚Ì‚Å0‚ğPUSH
-		ecalc_bin_printer_fldz( tree );
-
-		// –³ğŒ‚Épos3‚ÌI—¹‚Ü‚ÅƒWƒƒƒ“ƒv
-		apos2 = ecalc_bin_printer_jmp( tree, 0 );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos2 = ecalc_bin_printer_get_pos( tree );
-
-		// right == left ‚È‚Ì‚Å1‚ğPUSH
-		ecalc_bin_printer_fld1( tree );
-
-		// Œ»İˆÊ’u•Û‘¶
-		pos3 = ecalc_bin_printer_get_pos( tree );
-
-		// ƒWƒƒƒ“ƒvƒAƒhƒŒƒX–„‚ß‚İ
-		ecalc_bin_printer_set_address( tree, apos1, pos2 - pos1 );
-		ecalc_bin_printer_set_address( tree, apos2, pos3 - pos2 );
-
-		break;
-	case ECALC_FUNC_SIN:
-		// sin
-		ecalc_bin_printer_fsin( tree );
-		ecalc_bin_printer_fxch_st1( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-
-		break;
-	case ECALC_FUNC_COS:
-		// cos
-		ecalc_bin_printer_fcos( tree );
-		ecalc_bin_printer_fxch_st1( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-
-		break;
-	case ECALC_FUNC_TAN:                /* tan */
-	case ECALC_FUNC_ASIN:               /* asin */
-	case ECALC_FUNC_ACOS:               /* acos */
-	case ECALC_FUNC_ATAN:               /* atan */
-	case ECALC_FUNC_LOG10:              /* log10 */
-	case ECALC_FUNC_LOGN:               /* logn */
-		// ˆø”‚Æ‚µ‚Äst(0) = right‚ğƒZƒbƒg
-		ecalc_bin_printer_fstp( tree, arg1 );
-		ecalc_bin_printer_fstp_st0( tree );
-
-		// ŠÖ”ƒ|ƒCƒ“ƒ^‚ğeax‚Éƒ[ƒhEƒR[ƒ‹
-		ecalc_bin_printer_load_function_ptr_to_eax( tree, ecalc_get_func_addr( token->value ) );
-		ecalc_bin_printer_add_esp_i8( tree, -depth );
-		ecalc_bin_printer_call( tree );
-		ecalc_bin_printer_add_esp_i8( tree, +depth );
-		ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
-
-		break;
-	case ECALC_FUNC_SQRT:
-		// sqrt
-		ecalc_bin_printer_fsqrt( tree );
-		ecalc_bin_printer_fxch_st1( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-
-		break;
-	case ECALC_FUNC_POW:
-	case ECALC_FUNC_ATAN2:
-		// POWER, ATAN2
-
-		// ˆø”‚Æ‚µ‚Äleft : arg1, right : arg2‚ğƒZƒbƒg
-		ecalc_bin_printer_fstp( tree, arg2 );
-		ecalc_bin_printer_fstp( tree, arg1 );
-
-		// ŠÖ”ƒ|ƒCƒ“ƒ^‚ğeax‚Éƒ[ƒhEƒR[ƒ‹
-		ecalc_bin_printer_load_function_ptr_to_eax( tree, ecalc_get_func_addr( token->value ) );
-		ecalc_bin_printer_add_esp_i8( tree, -depth );
-		ecalc_bin_printer_call( tree );
-		ecalc_bin_printer_add_esp_i8( tree, +depth );
-		ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
-
-		break;
-	case ECALC_FUNC_RAD:
-		// rad
-
-		// ¶”jŠü
-		ecalc_bin_printer_fxch_st1( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-
-		// 180‚í‚é
-		ecalc_bin_printer_store_double_val( tree, dbuf, 180 );
-		ecalc_bin_printer_fld( tree, dbuf );
-		ecalc_bin_printer_fdivp( tree );
-
-		// PI‚©‚¯‚é
-		ecalc_bin_printer_fldpi( tree );
-		ecalc_bin_printer_fmulp( tree );
-
-		break;
-	case ECALC_FUNC_DEG:
-		// deg
-
-		// ¶”jŠü
-		ecalc_bin_printer_fxch_st1( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-
-		// PI‚í‚é
-		ecalc_bin_printer_fldpi( tree );
-		ecalc_bin_printer_fdivp( tree );
-
-		// 180‚©‚¯‚é
-		ecalc_bin_printer_store_double_val( tree, dbuf, 180 );
-		ecalc_bin_printer_fld( tree, dbuf );
-		ecalc_bin_printer_fmulp( tree );
-
-		break;
-	case ECALC_FUNC_PI:
-		// ƒÎ
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fldpi( tree );
-		// ecalc_bin_printer_store_double_val( tree, dbuf, M_PI );
-		// ecalc_bin_printer_fld( tree, dbuf );
-
-		break;
-	case ECALC_FUNC_EPS0:
-		// ƒÃ0
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_store_double_val( tree, dbuf, 8.85418782e-12 );
-		ecalc_bin_printer_fld( tree, dbuf );
-
-		break;
-	case ECALC_FUNC_ANS:
-		// ans
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_load_exp_ans_ptr_to_eax( tree );
-		ecalc_bin_printer_fld( tree, 0 );
-		ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
-
-		break;
-	case ECALC_FUNC_IF:
-		// if•¶
-
-		// ¶”jŠü‚µ‚Ä‰E‚ğ•Ô‚·
-		ecalc_bin_printer_fxch_st1( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-
-		break;
-	default:
-		// ƒfƒtƒHƒ‹ƒg‚Íƒ[ƒ
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fstp_st0( tree );
-		ecalc_bin_printer_fldz( tree );
-	}
-
-	// ˆê‚Â‚Ìƒm[ƒho—ÍŠ®—¹
-	// ‚±‚Ì“_‚ÅFPUƒXƒ^ƒbƒNƒŒƒxƒ‹‚Í1‚Åst(0)‚É“š‚¦‚ª‚ ‚é‚×‚«
+    // æœ¨ã‚’ãƒã‚¤ãƒŠãƒªã¸
+    /*
+     * eaxã¯ãƒã‚¤ãƒ³ã‚¿ãƒ¬ã‚¸ã‚¹ã‚¿ã€ecxã¯eaxã®ãƒãƒƒãƒ•ã‚¡ã€edxã¯å®šæ•°ãƒ¬ã‚¸ã‚¹ã‚¿ã¨ã—ãŸ
+     * ebxã¯ä¿å­˜ã—ãªã‘ã‚Œã°ãªã‚‰ãªã„ã®ã§ä½¿ã£ã¦ã„ãªã„
+     * æˆ»ã‚Šå€¤ã¯st(0)ã«å…¥ã‚Œã‚‹
+     * EBPã¯å¸¸ã«ã‚³ãƒ¼ãƒ«ã•ã‚ŒãŸæ™‚ç‚¹ã§ã®ESPã‚’æŒ‡ã—ã¦ã„ã‚‹
+     * ã¤ã¾ã‚Šavrs,ansã«ã¯EBPçµŒç”±ã§ã‚¢ã‚¯ã‚»ã‚¹å¯èƒ½
+     * ecalc_bin_printer_treeã‚’ãƒã‚¹ãƒˆã—ã¦ã‚³ãƒ¼ãƒ«ã™ã‚‹å ´åˆcdeclã¨åŒæ§˜ã«ãƒ¬ã‚¸ã‚¹ã‚¿ã‚’ç ´å£Šã™ã‚‹ã®ã§
+     * å‘¼ã³å‡ºã—å´ã§ã‚¹ã‚¿ãƒƒã‚¯ä½ç½®æ“ä½œã€ãƒ¬ã‚¸ã‚¹ã‚¿é€€é¿ãªã©ãŒå¿…è¦
+     */
+    const int left  = -8;
+    const int right = -16;
+    const int dbuf  = -24;
+    const int arg2  = -32;
+    const int arg1  = -40;
+    int depth = 40;
+    size_t pos1, pos2, pos3, pos4, apos1, apos2, apos3;
+
+    // EAXã‚’ç¾åœ¨ã®ã‚¹ã‚¿ãƒƒã‚¯ãƒˆãƒƒãƒ—ã«
+    ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
+
+    // EXPä»¥å¤–ãªã‚‰å¼·åˆ¶ã‚¼ãƒ­
+    if ( token->type != ECALC_TOKEN_EXP ) {
+        ecalc_bin_printer_store_double_val( tree, dbuf, 0 );
+        ecalc_bin_printer_fld( tree, dbuf );
+
+        return;
+    }
+
+    // left, rightã‚’0ã‚¯ãƒªã‚¢
+    ecalc_bin_printer_store_double_val( tree, left, 0 );
+    ecalc_bin_printer_store_double_val( tree, right, 0 );
+
+    // å·¦è¾ºå€¤å‡¦ç†
+    if ( token->left != NULL ) {
+        if ( token->left->type == ECALC_TOKEN_LITE ) {
+            // å·¦è¾ºå€¤å®šæ•°ãƒªãƒ†ãƒ©ãƒ«ã‚’å·¦ã«ã‚»ãƒƒãƒˆ
+            ecalc_bin_printer_store_double_val( tree, left, token->left->value );
+        } else if ( token->left->type == ECALC_TOKEN_VAR ) {
+            // å·¦è¾ºå€¤å¤‰æ•°å€¤ã‚’å·¦ã«ã‚»ãƒƒãƒˆ
+            ecalc_bin_printer_load_exp_var_ptr_to_eax( tree, token->left->value );
+            ecalc_bin_printer_fld( tree, 0 );
+            ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
+            ecalc_bin_printer_fstp( tree, left );
+        } else if ( token->left->type == ECALC_TOKEN_EXP ) {
+            // å·¦è¾ºãŒå¼ã ã£ãŸå ´åˆã•ã‚‰ã«JITå±•é–‹ã—æˆ»ã‚Šåœ°st(0)ã‚’å·¦ã«ã‚»ãƒƒãƒˆ
+            ecalc_bin_printer_add_esp_i8( tree, -depth );
+            ecalc_bin_printer_tree( tree, token->left );
+            ecalc_bin_printer_add_esp_i8( tree, +depth );
+            ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
+            ecalc_bin_printer_fstp( tree, left );
+        } else {
+            // å·¦ã‚’0ã«
+            ecalc_bin_printer_store_double_val( tree, left, 0 );
+        }
+    }
+
+    // å³è¾ºå–å¾—
+    if ( token->right != NULL ) {
+        if ( token->right->type == ECALC_TOKEN_LITE ) {
+            // å³è¾ºå€¤å®šæ•°ãƒªãƒ†ãƒ©ãƒ«ã‚’å³ã«ã‚»ãƒƒãƒˆ
+            ecalc_bin_printer_store_double_val( tree, right, token->right->value );
+        } else if ( token->right->type == ECALC_TOKEN_VAR ) {
+            // å³è¾ºå€¤å¤‰æ•°å€¤ã‚’å³ã«ã‚»ãƒƒãƒˆ
+            ecalc_bin_printer_load_exp_var_ptr_to_eax( tree, token->right->value );
+            ecalc_bin_printer_fld( tree, 0 );
+            ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
+            ecalc_bin_printer_fstp( tree, right );
+        } else if ( token->right->type == ECALC_TOKEN_EXP ) {
+            // å³è¾ºã‚’å¼ã¨ã—ã¦æ‰±ã†å ´åˆã€ã“ã“ã§å‡¦ç†
+            if ( token->value == ECALC_OPE_LOOP ) {
+                // ãƒ«ãƒ¼ãƒ—å‡¦ç† (@å¼)
+                // st(0) : ã‚«ã‚¦ãƒ³ã‚¿(åˆæœŸå€¤0)
+                // st(1) : 1
+                // st(2) : left(ãƒ«ãƒ¼ãƒ—å›æ•°)
+                // ã¨ã—ã¦æ¯”è¼ƒå®Ÿè¡Œ
+
+                // for ( i = 0; i != left; i++ ) {
+
+                // PUSH
+                ecalc_bin_printer_fld( tree, left );
+                ecalc_bin_printer_fld1( tree );
+                ecalc_bin_printer_fldz( tree );
+
+                // ç¾åœ¨ä½ç½®ä¿å­˜
+                pos1 = ecalc_bin_printer_get_pos( tree );
+
+                // st(0)ã¨st(2)ã‚’æ¯”è¼ƒ
+                ecalc_bin_printer_fcomi( tree, 2 );
+
+                // ZF(C3)ãŒ1ãªã‚‰st(0)==st(2)ãªã®ã§pos3ã¾ã§ã‚¸ãƒ£ãƒ³ãƒ—
+                apos1 = ecalc_bin_printer_je( tree, 0 );
+
+                // ç¾åœ¨ä½ç½®ä¿å­˜
+                pos2 = ecalc_bin_printer_get_pos( tree );
+
+                // POP
+                ecalc_bin_printer_fstp( tree, dbuf );
+                ecalc_bin_printer_fstp_st0( tree );
+                ecalc_bin_printer_fstp_st0( tree );
+
+                // å®Ÿè¡Œ
+                ecalc_bin_printer_add_esp_i8( tree, -depth );
+                ecalc_bin_printer_tree( tree, token->right );
+                ecalc_bin_printer_add_esp_i8( tree, +depth );
+                ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
+                ecalc_bin_printer_fstp( tree, right );
+
+                // PUSH
+                ecalc_bin_printer_fld( tree, left );
+                ecalc_bin_printer_fld1( tree );
+                ecalc_bin_printer_fld( tree, dbuf );
+
+                // ã‚¤ãƒ³ã‚¯ãƒªãƒ¡ãƒ³ãƒˆ
+                ecalc_bin_printer_fadd( tree, 1 );
+
+                // pos1ã®æ¯”è¼ƒã¾ã§æˆ»ã‚‹
+                apos2 = ecalc_bin_printer_jmp( tree, 0 );
+
+                // ç¾åœ¨ä½ç½®ä¿å­˜
+                pos3 = ecalc_bin_printer_get_pos( tree );
+
+                // ã‚¸ãƒ£ãƒ³ãƒ—ã‚¢ãƒ‰ãƒ¬ã‚¹åŸ‹ã‚è¾¼ã¿
+                ecalc_bin_printer_set_address( tree, apos1, pos3 - pos2 );
+                ecalc_bin_printer_set_address( tree, apos2, pos1 - pos3 );
+
+                // FPUã‚¹ã‚¿ãƒƒã‚¯ã‚¯ãƒªã‚¢
+                ecalc_bin_printer_fstp_st0( tree );
+                ecalc_bin_printer_fstp_st0( tree );
+                ecalc_bin_printer_fstp_st0( tree );
+
+                // }
+            } else if ( token->value == ECALC_FUNC_IF ) {
+                // ifå¼
+                // st(0) : 0
+                // st(1) : left
+                // ã¨ã—ã¦æ¯”è¼ƒ
+
+                // PUSH
+                ecalc_bin_printer_fldz( tree );
+                ecalc_bin_printer_fld( tree, left );
+
+                // st(0)ã¨st(1)ã‚’æ¯”è¼ƒ
+                ecalc_bin_printer_fcomi( tree, 1 );
+
+                // ZF(FPUã®C3)ãŒ1ãªã‚‰st(0)==st(1)ãªã®ã§pos2ã¾ã§ã‚¸ãƒ£ãƒ³ãƒ—
+                apos1 = ecalc_bin_printer_je( tree, 0 );
+
+                // ç¾åœ¨ä½ç½®ä¿å­˜
+                pos1 = ecalc_bin_printer_get_pos( tree );
+
+                // POP
+                ecalc_bin_printer_fstp_st0( tree );
+                ecalc_bin_printer_fstp_st0( tree );
+
+                // å®Ÿè¡Œ ( å³ã®å€¤ã¯ä½¿ã‚ãªã„ã®ã§æœ€å¾Œã®stpã¯ãŸã ã®POPã§ã‚‚ã‚ˆã„ )
+                ecalc_bin_printer_add_esp_i8( tree, -depth );
+                ecalc_bin_printer_tree( tree, token->right );
+                ecalc_bin_printer_add_esp_i8( tree, +depth );
+                ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
+                ecalc_bin_printer_fstp( tree, right );
+
+                // ãƒ€ãƒŸãƒ¼PUSH
+                ecalc_bin_printer_fldz( tree );
+                ecalc_bin_printer_fldz( tree );
+
+                // ç¾åœ¨ä½ç½®ä¿å­˜
+                pos2 = ecalc_bin_printer_get_pos( tree );
+
+                // ã‚¸ãƒ£ãƒ³ãƒ—ã‚¢ãƒ‰ãƒ¬ã‚¹åŸ‹ã‚è¾¼ã¿
+                ecalc_bin_printer_set_address( tree, apos1, pos2 - pos1 );
+
+                // FPUã‚¹ã‚¿ãƒƒã‚¯ã‚¯ãƒªã‚¢
+                ecalc_bin_printer_fstp_st0( tree );
+                ecalc_bin_printer_fstp_st0( tree );
+
+                // right = left
+                ecalc_bin_printer_fld( tree, left );
+                ecalc_bin_printer_fstp( tree, right );
+            } else {
+                // å³è¾ºã®å¼å‡¦ç†
+                ecalc_bin_printer_add_esp_i8( tree, -depth );
+                ecalc_bin_printer_tree( tree, token->right );
+                ecalc_bin_printer_add_esp_i8( tree, +depth );
+                ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
+                ecalc_bin_printer_fstp( tree, right );
+            }
+        } else {
+            // å³ã‚’0ã«
+            ecalc_bin_printer_store_double_val( tree, right, 0 );
+        }
+    }
+
+    // st(1) = left, st(0) = right
+    ecalc_bin_printer_fld( tree, left );
+    ecalc_bin_printer_fld( tree, right );
+
+    // è¨ˆç®— çµæœã¯ã‚¹ã‚¿ãƒƒã‚¯ãƒ¬ãƒ™ãƒ«ãŒ2ã®çŠ¶æ…‹ã§st(0)ã«å…¥ã£ã¦ã„ã‚‹ã‚‚ã®ã¨ã™ã‚‹
+    // ãã‚Œãã‚Œè‡ªåˆ†ã®caseå†…ã§st(0)ã«çµæœã‚’å…¥ã‚Œã¦ã‚¹ã‚¿ãƒƒã‚¯ãƒ¬ãƒ™ãƒ«ã‚’1ã«ã™ã‚‹
+    switch ( (int)token->value ) {
+    case ECALC_OPE_ADD:
+        // è¶³ã—ç®—
+        ecalc_bin_printer_faddp( tree );
+        break;
+    case ECALC_OPE_SUB:
+        // å¼•ãç®—
+        ecalc_bin_printer_fsubp( tree );
+        break;
+    case ECALC_OPE_MUL:
+        // æ›ã‘ç®—
+        ecalc_bin_printer_fmulp( tree );
+        break;
+    case ECALC_OPE_DIV:
+        // å‰²ã‚Šç®—
+        // / 0ã¯ã‚¨ãƒ©ãƒ¼ã‚’ç™ºç”Ÿã•ã›ãªã„
+        // st(0) = 0ã¨ã—ã¦st(1) : rightã¨æ¯”è¼ƒ
+        ecalc_bin_printer_fldz( tree );
+        ecalc_bin_printer_fcomi( tree, 1 );
+
+        // right == 0ãªã‚‰pos2ã¸é£›ã¶
+        apos1 = ecalc_bin_printer_je( tree, 0 );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos1 = ecalc_bin_printer_get_pos( tree );
+
+        // right != 0ãªã®ã§å‰²ã‚Šç®—
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fdivp( tree );
+
+        // ç„¡æ¡ä»¶ã«pos3ã®çµ‚äº†ã¾ã§ã‚¸ãƒ£ãƒ³ãƒ—
+        apos2 = ecalc_bin_printer_jmp( tree, 0 );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos2 = ecalc_bin_printer_get_pos( tree );
+
+        // right == 0ãªã®ã§st(0)=0ã¨ã™ã‚‹
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fldz( tree );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos3 = ecalc_bin_printer_get_pos( tree );
+
+        // ã‚¸ãƒ£ãƒ³ãƒ—ã‚¢ãƒ‰ãƒ¬ã‚¹æ±ºå®š
+        ecalc_bin_printer_set_address( tree, apos1, pos2 - pos1 );
+        ecalc_bin_printer_set_address( tree, apos2, pos3 - pos2 );
+
+        break;
+    case ECALC_OPE_MOD:
+        // ä½™ã‚Š
+        // % 0ã¯ã‚¨ãƒ©ãƒ¼ã‚’ç™ºç”Ÿã•ã›ãªã„
+        // st(0) = 0ã¨ã—ã¦st(1) : rightã¨æ¯”è¼ƒ
+        ecalc_bin_printer_fldz( tree );
+        ecalc_bin_printer_fcomi( tree, 1 );
+
+        // right == 0ãªã‚‰pos2ã¸é£›ã¶
+        apos1 = ecalc_bin_printer_je( tree, 0 );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos1 = ecalc_bin_printer_get_pos( tree );
+
+        // right != 0ãªã®ã§ä½™ã‚Šã‚’è¨ˆç®—
+        // å¼•æ•°POP and PUSH
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fstp( tree, arg2 );
+        ecalc_bin_printer_fstp( tree, arg1 );
+
+        // é–¢æ•°ãƒã‚¤ãƒ³ã‚¿ã‚’eaxã«ãƒ­ãƒ¼ãƒ‰ãƒ»ã‚³ãƒ¼ãƒ«
+        ecalc_bin_printer_load_function_ptr_to_eax( tree, ecalc_get_func_addr( token->value ) );
+        ecalc_bin_printer_add_esp_i8( tree, -depth );
+        ecalc_bin_printer_call( tree );
+        ecalc_bin_printer_add_esp_i8( tree, +depth );
+        ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
+
+        // ç„¡æ¡ä»¶ã«pos3ã®çµ‚äº†ã¾ã§ã‚¸ãƒ£ãƒ³ãƒ—
+        apos2 = ecalc_bin_printer_jmp( tree, 0 );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos2 = ecalc_bin_printer_get_pos( tree );
+
+        // right == 0ãªã®ã§st(0)=0, st(1)=rightã¨ã™ã‚‹
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fldz( tree );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos3 = ecalc_bin_printer_get_pos( tree );
+
+        // ã‚¸ãƒ£ãƒ³ãƒ—ã‚¢ãƒ‰ãƒ¬ã‚¹æ±ºå®š
+        ecalc_bin_printer_set_address( tree, apos1, pos2 - pos1 );
+        ecalc_bin_printer_set_address( tree, apos2, pos3 - pos2 );
+
+        break;
+    case ECALC_OPE_STI:
+        // ä»£å…¥
+        // å·¦è¾ºå¤‰æ•°ãƒã‚¤ãƒ³ã‚¿ã‚’EAXã«ãƒ­ãƒ¼ãƒ‰
+        ecalc_bin_printer_load_exp_var_ptr_to_eax( tree, token->left->value );
+
+        // ä»£å…¥
+        ecalc_bin_printer_fstp( tree, 0 );
+        ecalc_bin_printer_fstp_st0( tree );
+
+        // st(0)ã‚»ãƒƒãƒˆ
+        ecalc_bin_printer_fld( tree, 0 );
+
+        // EAXå¾©å¸°
+        ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
+
+        break;
+    case ECALC_OPE_SEPA:
+        // åŒºåˆ‡ã‚Š
+        ecalc_bin_printer_fxch_st1( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+        break;
+    case ECALC_OPE_LOOP:
+        // ç¹°ã‚Šè¿”ã—
+        ecalc_bin_printer_fxch_st1( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+        break;
+    case ECALC_OPE_LBIG:
+        // å·¦ãŒå¤§ãã„
+
+        // st(0)ã¨st(1)ã‚’æ¯”è¼ƒ
+        ecalc_bin_printer_fcomi( tree, 1 );
+
+        // POP
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+
+        // ZF(C3)ãŒ1ãªã‚‰st(0)==st(1)ãªã®ã§pos2ã¾ã§ã‚¸ãƒ£ãƒ³ãƒ—
+        apos1 = ecalc_bin_printer_je( tree, 0 );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos1 = ecalc_bin_printer_get_pos( tree );
+
+        // CF(FPUã®C0)ãŒ1ãªã‚‰st(0) < st(1)ãªã®ã§pos3ã¾ã§ã‚¸ãƒ£ãƒ³ãƒ—
+        apos2 = ecalc_bin_printer_jb( tree, 0 );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos2 = ecalc_bin_printer_get_pos( tree );
+
+        // left <= right ãªã®ã§0ã‚’PUSH
+        ecalc_bin_printer_fldz( tree );
+
+        // ç„¡æ¡ä»¶ã«pos3ã®çµ‚äº†ã¾ã§ã‚¸ãƒ£ãƒ³ãƒ—
+        apos3 = ecalc_bin_printer_jmp( tree, 0 );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos3 = ecalc_bin_printer_get_pos( tree );
+
+        // right < left ãªã®ã§1ã‚’PUSH
+        ecalc_bin_printer_fld1( tree );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos4 = ecalc_bin_printer_get_pos( tree );
+
+        // ã‚¸ãƒ£ãƒ³ãƒ—ã‚¢ãƒ‰ãƒ¬ã‚¹åŸ‹ã‚è¾¼ã¿
+        ecalc_bin_printer_set_address( tree, apos1, pos2 - pos1 );
+        ecalc_bin_printer_set_address( tree, apos2, pos3 - pos2 );
+        ecalc_bin_printer_set_address( tree, apos3, pos4 - pos3 );
+
+        break;
+    case ECALC_OPE_RBIG:
+        // å³ãŒå¤§ãã„
+
+        // st(0)ã¨st(1)ã‚’æ¯”è¼ƒ
+        ecalc_bin_printer_fcomi( tree, 1 );
+
+        // POP
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+
+        // ZF(C3)ãŒ1ãªã‚‰st(0)==st(1)ãªã®ã§pos3ã¾ã§ã‚¸ãƒ£ãƒ³ãƒ—
+        apos1 = ecalc_bin_printer_je( tree, 0 );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos1 = ecalc_bin_printer_get_pos( tree );
+
+        // CF(FPUã®C0)ãŒ1ãªã‚‰st(0) < st(1)ãªã®ã§pos3ã¾ã§ã‚¸ãƒ£ãƒ³ãƒ—
+        apos2 = ecalc_bin_printer_jb( tree, 0 );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos2 = ecalc_bin_printer_get_pos( tree );
+
+        // right > left ãªã®ã§1ã‚’PUSH
+        ecalc_bin_printer_fld1( tree );
+
+        // ç„¡æ¡ä»¶ã«pos3ã®çµ‚äº†ã¾ã§ã‚¸ãƒ£ãƒ³ãƒ—
+        apos3 = ecalc_bin_printer_jmp( tree, 0 );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos3 = ecalc_bin_printer_get_pos( tree );
+
+        // right <= left ãªã®ã§0ã‚’PUSH
+        ecalc_bin_printer_fldz( tree );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos4 = ecalc_bin_printer_get_pos( tree );
+
+        // ã‚¸ãƒ£ãƒ³ãƒ—ã‚¢ãƒ‰ãƒ¬ã‚¹åŸ‹ã‚è¾¼ã¿
+        ecalc_bin_printer_set_address( tree, apos1, pos3 - pos1 );
+        ecalc_bin_printer_set_address( tree, apos2, pos3 - pos2 );
+        ecalc_bin_printer_set_address( tree, apos3, pos4 - pos3 );
+
+        break;
+    case ECALC_OPE_EQU:
+        // åŒã˜
+
+        // st(0)ã¨st(1)ã‚’æ¯”è¼ƒ
+        ecalc_bin_printer_fcomi( tree, 1 );
+
+        // POP
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+
+        // ZF(C3)ãŒ1ãªã‚‰st(0)==st(1)ãªã®ã§pos2ã¾ã§ã‚¸ãƒ£ãƒ³ãƒ—
+        apos1 = ecalc_bin_printer_je( tree, 0 );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos1 = ecalc_bin_printer_get_pos( tree );
+
+        // right != left ãªã®ã§0ã‚’PUSH
+        ecalc_bin_printer_fldz( tree );
+
+        // ç„¡æ¡ä»¶ã«pos3ã®çµ‚äº†ã¾ã§ã‚¸ãƒ£ãƒ³ãƒ—
+        apos2 = ecalc_bin_printer_jmp( tree, 0 );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos2 = ecalc_bin_printer_get_pos( tree );
+
+        // right == left ãªã®ã§1ã‚’PUSH
+        ecalc_bin_printer_fld1( tree );
+
+        // ç¾åœ¨ä½ç½®ä¿å­˜
+        pos3 = ecalc_bin_printer_get_pos( tree );
+
+        // ã‚¸ãƒ£ãƒ³ãƒ—ã‚¢ãƒ‰ãƒ¬ã‚¹åŸ‹ã‚è¾¼ã¿
+        ecalc_bin_printer_set_address( tree, apos1, pos2 - pos1 );
+        ecalc_bin_printer_set_address( tree, apos2, pos3 - pos2 );
+
+        break;
+    case ECALC_FUNC_SIN:
+        // sin
+        ecalc_bin_printer_fsin( tree );
+        ecalc_bin_printer_fxch_st1( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+
+        break;
+    case ECALC_FUNC_COS:
+        // cos
+        ecalc_bin_printer_fcos( tree );
+        ecalc_bin_printer_fxch_st1( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+
+        break;
+    case ECALC_FUNC_TAN:                /* tan */
+    case ECALC_FUNC_ASIN:               /* asin */
+    case ECALC_FUNC_ACOS:               /* acos */
+    case ECALC_FUNC_ATAN:               /* atan */
+    case ECALC_FUNC_LOG10:              /* log10 */
+    case ECALC_FUNC_LOGN:               /* logn */
+        // å¼•æ•°ã¨ã—ã¦st(0) = rightã‚’ã‚»ãƒƒãƒˆ
+        ecalc_bin_printer_fstp( tree, arg1 );
+        ecalc_bin_printer_fstp_st0( tree );
+
+        // é–¢æ•°ãƒã‚¤ãƒ³ã‚¿ã‚’eaxã«ãƒ­ãƒ¼ãƒ‰ãƒ»ã‚³ãƒ¼ãƒ«
+        ecalc_bin_printer_load_function_ptr_to_eax( tree, ecalc_get_func_addr( token->value ) );
+        ecalc_bin_printer_add_esp_i8( tree, -depth );
+        ecalc_bin_printer_call( tree );
+        ecalc_bin_printer_add_esp_i8( tree, +depth );
+        ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
+
+        break;
+    case ECALC_FUNC_SQRT:
+        // sqrt
+        ecalc_bin_printer_fsqrt( tree );
+        ecalc_bin_printer_fxch_st1( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+
+        break;
+    case ECALC_FUNC_POW:
+    case ECALC_FUNC_ATAN2:
+        // POWER, ATAN2
+
+        // å¼•æ•°ã¨ã—ã¦left : arg1, right : arg2ã‚’ã‚»ãƒƒãƒˆ
+        ecalc_bin_printer_fstp( tree, arg2 );
+        ecalc_bin_printer_fstp( tree, arg1 );
+
+        // é–¢æ•°ãƒã‚¤ãƒ³ã‚¿ã‚’eaxã«ãƒ­ãƒ¼ãƒ‰ãƒ»ã‚³ãƒ¼ãƒ«
+        ecalc_bin_printer_load_function_ptr_to_eax( tree, ecalc_get_func_addr( token->value ) );
+        ecalc_bin_printer_add_esp_i8( tree, -depth );
+        ecalc_bin_printer_call( tree );
+        ecalc_bin_printer_add_esp_i8( tree, +depth );
+        ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
+
+        break;
+    case ECALC_FUNC_RAD:
+        // rad
+
+        // å·¦ç ´æ£„
+        ecalc_bin_printer_fxch_st1( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+
+        // 180ã‚ã‚‹
+        ecalc_bin_printer_store_double_val( tree, dbuf, 180 );
+        ecalc_bin_printer_fld( tree, dbuf );
+        ecalc_bin_printer_fdivp( tree );
+
+        // PIã‹ã‘ã‚‹
+        ecalc_bin_printer_fldpi( tree );
+        ecalc_bin_printer_fmulp( tree );
+
+        break;
+    case ECALC_FUNC_DEG:
+        // deg
+
+        // å·¦ç ´æ£„
+        ecalc_bin_printer_fxch_st1( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+
+        // PIã‚ã‚‹
+        ecalc_bin_printer_fldpi( tree );
+        ecalc_bin_printer_fdivp( tree );
+
+        // 180ã‹ã‘ã‚‹
+        ecalc_bin_printer_store_double_val( tree, dbuf, 180 );
+        ecalc_bin_printer_fld( tree, dbuf );
+        ecalc_bin_printer_fmulp( tree );
+
+        break;
+    case ECALC_FUNC_PI:
+        // Ï€
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fldpi( tree );
+        // ecalc_bin_printer_store_double_val( tree, dbuf, M_PI );
+        // ecalc_bin_printer_fld( tree, dbuf );
+
+        break;
+    case ECALC_FUNC_EPS0:
+        // Îµ0
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_store_double_val( tree, dbuf, 8.85418782e-12 );
+        ecalc_bin_printer_fld( tree, dbuf );
+
+        break;
+    case ECALC_FUNC_ANS:
+        // ans
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_load_exp_ans_ptr_to_eax( tree );
+        ecalc_bin_printer_fld( tree, 0 );
+        ecalc_bin_printer_load_var_ptr_to_eax( tree, 0 );
+
+        break;
+    case ECALC_FUNC_IF:
+        // ifæ–‡
+
+        // å·¦ç ´æ£„ã—ã¦å³ã‚’è¿”ã™
+        ecalc_bin_printer_fxch_st1( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+
+        break;
+    default:
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯ã‚¼ãƒ­
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fstp_st0( tree );
+        ecalc_bin_printer_fldz( tree );
+    }
+
+    // ä¸€ã¤ã®ãƒãƒ¼ãƒ‰å‡ºåŠ›å®Œäº†
+    // ã“ã®æ™‚ç‚¹ã§FPUã‚¹ã‚¿ãƒƒã‚¯ãƒ¬ãƒ™ãƒ«ã¯1ã§st(0)ã«ç­”ãˆãŒã‚ã‚‹ã¹ã
 }
 
 void ecalc_bin_printer_print( ECALC_JIT_TREE *tree, unsigned char *buf, size_t size )
 {
-	// ‚à‚ç‚Á‚½ƒoƒCƒg—ñ‚ğ‘‚«‚İ
-	if ( tree->data != NULL ) {
-		memcpy( tree->data + tree->pos, buf, size );
-	}
+    // ã‚‚ã‚‰ã£ãŸãƒã‚¤ãƒˆåˆ—ã‚’æ›¸ãè¾¼ã¿
+    if ( tree->data != NULL ) {
+        memcpy( tree->data + tree->pos, buf, size );
+    }
 
-	tree->pos += size;
+    tree->pos += size;
 }
 
 size_t ecalc_bin_printer_get_pos( ECALC_JIT_TREE *tree )
 {
-	// Œ»İˆÊ’uæ“¾
-	return tree->pos;
+    // ç¾åœ¨ä½ç½®å–å¾—
+    return tree->pos;
 }
 
 void ecalc_bin_printer_reset_tree( ECALC_JIT_TREE *tree )
 {
-	// \‘¢‘Ì‚ğƒNƒŠƒA‚·‚éiƒTƒCƒY‘ª’è‚È‚Ç‚Ég‚¤j
-	tree->pos  = 0;
-	tree->size = 0;
-	tree->data = NULL;
-	tree->pos  = 0;
+    // æ§‹é€ ä½“ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹ï¼ˆã‚µã‚¤ã‚ºæ¸¬å®šãªã©ã«ä½¿ã†ï¼‰
+    tree->pos  = 0;
+    tree->size = 0;
+    tree->data = NULL;
+    tree->pos  = 0;
 }
 
 void ecalc_bin_printer_set_address( ECALC_JIT_TREE *tree, size_t pos, int32_t address )
 {
-	// ƒAƒhƒŒƒX‚ğŒã‚Å“ü‚ê‚é‚½‚ß‚Ì•â•ŠÖ”
-	if ( tree->data != NULL ) {
-		memcpy( tree->data + pos, &address, sizeof( address ) );
-	}
+    // ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’å¾Œã§å…¥ã‚Œã‚‹ãŸã‚ã®è£œåŠ©é–¢æ•°
+    if ( tree->data != NULL ) {
+        memcpy( tree->data + pos, &address, sizeof( address ) );
+    }
 }
 
 void ecalc_bin_printer_opening( ECALC_JIT_TREE *tree )
 {
-	// ƒI[ƒvƒjƒ“ƒO
-	/*
-	push ebp			55
-	mov ebp, esp		8BEC ‚à‚µ‚­‚Í 89E5
-	*/
-	unsigned char bin[] = {0x55, 0x89, 0xE5};
+    // ã‚ªãƒ¼ãƒ—ãƒ‹ãƒ³ã‚°
+    /*
+    push ebp			55
+    mov ebp, esp		8BEC ã‚‚ã—ãã¯ 89E5
+    */
+    unsigned char bin[] = {0x55, 0x89, 0xE5};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_closing( ECALC_JIT_TREE *tree )
 {
-	// ƒNƒ[ƒWƒ“ƒO
-	/*
-	pop ebp				5D
-	ret					C3
-	*/
+    // ã‚¯ãƒ­ãƒ¼ã‚¸ãƒ³ã‚°
+    /*
+    pop ebp				5D
+    ret					C3
+    */
 
-	unsigned char bin[] = {0x5D, 0xC3};
+    unsigned char bin[] = {0x5D, 0xC3};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_load_arg_ptr_to_eax( ECALC_JIT_TREE *tree, int8_t val )
 {
-	// EBP‚ğæ“ª‚Æ‚·‚éˆø”‚Ìƒ|ƒCƒ“ƒ^‚ğEAX‚É“Ç‚İ‚Ş
-	/*
-	 * lea eax, [ebp+val]	8D45vv
-	 */
-	unsigned char bin[] = {0x8D, 0x45, 0x00};
+    // EBPã‚’å…ˆé ­ã¨ã™ã‚‹å¼•æ•°ã®ãƒã‚¤ãƒ³ã‚¿ã‚’EAXã«èª­ã¿è¾¼ã‚€
+    /*
+     * lea eax, [ebp+val]	8D45vv
+     */
+    unsigned char bin[] = {0x8D, 0x45, 0x00};
 
-	bin[2] = val;
+    bin[2] = val;
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_load_var_ptr_to_eax( ECALC_JIT_TREE *tree, int8_t val )
 {
-	// ESP‚ğŠî€‚Æ‚µ‚½ƒ|ƒCƒ“ƒ^‚ğEAX‚É“Ç‚İ‚Ş
-	/*
-	 * lea eax, [esp+val]	8D4424vv
-	 */
+    // ESPã‚’åŸºæº–ã¨ã—ãŸãƒã‚¤ãƒ³ã‚¿ã‚’EAXã«èª­ã¿è¾¼ã‚€
+    /*
+     * lea eax, [esp+val]	8D4424vv
+     */
 
-	unsigned char bin[] = {0x8D, 0x44, 0x24, 0x00};
+    unsigned char bin[] = {0x8D, 0x44, 0x24, 0x00};
 
-	bin[3] = val;
+    bin[3] = val;
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_load_eax_pointed_to_eax( ECALC_JIT_TREE *tree, int8_t val )
 {
-	// EAX‚Ìw‚·ƒƒ‚ƒŠ‹óŠÔã‚É‚ ‚é’l‚ğEAX‚ÉƒRƒs[
-	/*
-	 * mov eax, [eax+val]	8B40vv
-	 */
-	unsigned char bin[] = {0x8B, 0x40, 0x00};
+    // EAXã®æŒ‡ã™ãƒ¡ãƒ¢ãƒªç©ºé–“ä¸Šã«ã‚ã‚‹å€¤ã‚’EAXã«ã‚³ãƒ”ãƒ¼
+    /*
+     * mov eax, [eax+val]	8B40vv
+     */
+    unsigned char bin[] = {0x8B, 0x40, 0x00};
 
-	bin[2] = val;
+    bin[2] = val;
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_push_dword_val(ECALC_JIT_TREE *tree, uint32_t val)
 {
-	// DWORD’l‚ğƒXƒ^ƒbƒN‚ÉÏ‚Ş
-	/*
-	 * push 0xvvvvvvvv	68vvvvvvvv
-	 */
+    // DWORDå€¤ã‚’ã‚¹ã‚¿ãƒƒã‚¯ã«ç©ã‚€
+    /*
+     * push 0xvvvvvvvv	68vvvvvvvv
+     */
 
-	unsigned char bin[] = {0x68, 0x00, 0x00, 0x00, 0x00};
+    unsigned char bin[] = {0x68, 0x00, 0x00, 0x00, 0x00};
 
-	memcpy( bin + 1, &val, sizeof(uint32_t) );
+    memcpy( bin + 1, &val, sizeof(uint32_t) );
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_add_eax_i8(ECALC_JIT_TREE *tree, int8_t val)
 {
-	// eax‚Ésigned 8bit‚ğ‚½‚·
-	/*
-	 * add eax, v	83C0vv
-	 */
+    // eaxã«signed 8bitã‚’ãŸã™
+    /*
+     * add eax, v	83C0vv
+     */
 
-	unsigned char bin[] = {0x83, 0xC0, 0x00};
+    unsigned char bin[] = {0x83, 0xC0, 0x00};
 
-	bin[2] = val;
+    bin[2] = val;
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_store_dword_val(ECALC_JIT_TREE *tree, int8_t pos, uint32_t val)
 {
-	// eax+pos‚Ìw‚·êŠ‚Édword’l‚ğƒZƒbƒg
-	/*
-	 * mov dword ptr [eax+pos], val		C740pp vvvvvvvv
-	 */
+    // eax+posã®æŒ‡ã™å ´æ‰€ã«dwordå€¤ã‚’ã‚»ãƒƒãƒˆ
+    /*
+     * mov dword ptr [eax+pos], val		C740pp vvvvvvvv
+     */
 
-	unsigned char bin[] = {0xC7, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00};
+    unsigned char bin[] = {0xC7, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-	bin[2] = pos;
-	memcpy( bin + 3, &val, sizeof(uint32_t) );
+    bin[2] = pos;
+    memcpy( bin + 3, &val, sizeof(uint32_t) );
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_store_double_val(ECALC_JIT_TREE *tree, int8_t pos, double val)
 {
-	// double‚ğeax+pos‚Ìw‚·ˆÊ’u‚ÉƒXƒgƒA
-	ecalc_bin_printer_store_dword_val( tree, pos,     *(uint32_t *)( ( (unsigned char *)&val ) + 0 ) );
-	ecalc_bin_printer_store_dword_val( tree, pos + 4, *(uint32_t *)( ( (unsigned char *)&val ) + 4 ) );
+    // doubleã‚’eax+posã®æŒ‡ã™ä½ç½®ã«ã‚¹ãƒˆã‚¢
+    ecalc_bin_printer_store_dword_val( tree, pos,     *(uint32_t *)( ( (unsigned char *)&val ) + 0 ) );
+    ecalc_bin_printer_store_dword_val( tree, pos + 4, *(uint32_t *)( ( (unsigned char *)&val ) + 4 ) );
 }
 
 void ecalc_bin_printer_push_dword(ECALC_JIT_TREE *tree, int8_t val)
 {
-	// eax+val‚Ìw‚·æ‚ğƒXƒ^ƒbƒN‚ÉƒvƒbƒVƒ…
-	/*
-	 * push dword ptr [eax+val]	FF70vv
-	 */
+    // eax+valã®æŒ‡ã™å…ˆã‚’ã‚¹ã‚¿ãƒƒã‚¯ã«ãƒ—ãƒƒã‚·ãƒ¥
+    /*
+     * push dword ptr [eax+val]	FF70vv
+     */
 
-	unsigned char bin[] = {0xFF, 0x70, 0x00};
+    unsigned char bin[] = {0xFF, 0x70, 0x00};
 
-	bin[2] = val;
+    bin[2] = val;
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_push_qword(ECALC_JIT_TREE *tree, int8_t val)
 {
-	// eax+val‚Ìw‚·æ‚ğƒXƒ^ƒbƒN‚É8ƒoƒCƒgƒvƒbƒVƒ…(‚‚¢ƒAƒhƒŒƒX‚©‚ç)
-	ecalc_bin_printer_push_dword( tree, val + 4 );
-	ecalc_bin_printer_push_dword( tree, val );
+    // eax+valã®æŒ‡ã™å…ˆã‚’ã‚¹ã‚¿ãƒƒã‚¯ã«8ãƒã‚¤ãƒˆãƒ—ãƒƒã‚·ãƒ¥(é«˜ã„ã‚¢ãƒ‰ãƒ¬ã‚¹ã‹ã‚‰)
+    ecalc_bin_printer_push_dword( tree, val + 4 );
+    ecalc_bin_printer_push_dword( tree, val );
 }
 
 void ecalc_bin_printer_pop_dword(ECALC_JIT_TREE *tree, int8_t val)
 {
-	// eax+val‚Ìw‚·æ‚ÉƒXƒ^ƒbƒN‚©‚çƒ|ƒbƒv
-	/*
-	 * pop dword ptr [eax+val]	8F40vv
-	 */
+    // eax+valã®æŒ‡ã™å…ˆã«ã‚¹ã‚¿ãƒƒã‚¯ã‹ã‚‰ãƒãƒƒãƒ—
+    /*
+     * pop dword ptr [eax+val]	8F40vv
+     */
 
-	unsigned char bin[] = {0x8F, 0x40, 0x00};
+    unsigned char bin[] = {0x8F, 0x40, 0x00};
 
-	bin[2] = val;
+    bin[2] = val;
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_pop_qword(ECALC_JIT_TREE *tree, int8_t val)
 {
-	// eax+val‚Ìw‚·æ‚ÉƒXƒ^ƒbƒN‚©‚ç8ƒoƒCƒgƒ|ƒbƒv(PUSH‚Æ‹t‡)
-	ecalc_bin_printer_pop_dword( tree, val );
-	ecalc_bin_printer_pop_dword( tree, val + 4 );
+    // eax+valã®æŒ‡ã™å…ˆã«ã‚¹ã‚¿ãƒƒã‚¯ã‹ã‚‰8ãƒã‚¤ãƒˆãƒãƒƒãƒ—(PUSHã¨é€†é †)
+    ecalc_bin_printer_pop_dword( tree, val );
+    ecalc_bin_printer_pop_dword( tree, val + 4 );
 }
 
 void ecalc_bin_printer_fld(ECALC_JIT_TREE *tree, int8_t val)
 {
-	// eax+val‚Ìw‚·ˆÊ’u‚É‚ ‚édouble‚ğFPU‚ÉPUSH
-	/*
-	 * fld qword ptr [eax+val]	DD40vv
-	 */
+    // eax+valã®æŒ‡ã™ä½ç½®ã«ã‚ã‚‹doubleã‚’FPUã«PUSH
+    /*
+     * fld qword ptr [eax+val]	DD40vv
+     */
 
-	unsigned char bin[] = {0xDD, 0x40, 0x00};
+    unsigned char bin[] = {0xDD, 0x40, 0x00};
 
-	bin[2] = val;
+    bin[2] = val;
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fstp(ECALC_JIT_TREE *tree, int8_t val)
 {
-	// eax+val‚ÉFPU‚Ìƒgƒbƒv‚ğƒXƒgƒA‚µ‚Äƒ|ƒbƒv
-	/*
-	 * fstp qword ptr [eax+val]	DD58vv
-	 */
+    // eax+valã«FPUã®ãƒˆãƒƒãƒ—ã‚’ã‚¹ãƒˆã‚¢ã—ã¦ãƒãƒƒãƒ—
+    /*
+     * fstp qword ptr [eax+val]	DD58vv
+     */
 
-	unsigned char bin[] = {0xDD, 0x58, 0x00};
+    unsigned char bin[] = {0xDD, 0x58, 0x00};
 
-	bin[2] = val;
+    bin[2] = val;
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fistp( ECALC_JIT_TREE *tree, int8_t val )
 {
-	// eax+val‚ÉFPU‚Ìƒgƒbƒv‚ğ32bit•„†•t®”‚Æ‚µ‚ÄƒXƒgƒA‚µ‚Äƒ|ƒbƒv
-	/*
-	 * fistp qword ptr [eax+val]	DF78vv
-	 */
+    // eax+valã«FPUã®ãƒˆãƒƒãƒ—ã‚’32bitç¬¦å·ä»˜æ•´æ•°ã¨ã—ã¦ã‚¹ãƒˆã‚¢ã—ã¦ãƒãƒƒãƒ—
+    /*
+     * fistp qword ptr [eax+val]	DF78vv
+     */
 
-	unsigned char bin[] = {0xDF, 0x78, 0x00};
+    unsigned char bin[] = {0xDF, 0x78, 0x00};
 
-	bin[2] = val;
+    bin[2] = val;
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fstp_st0( ECALC_JIT_TREE *tree )
 {
-	// FPUƒXƒ^ƒbƒN‚ğPOP‚µ‚Äƒf[ƒ^“]‘—‚È‚µ
-	/*
-	 * fstp st(0)	DDD8
-	 */
-	unsigned char bin[] = {0xDD, 0xD8};
+    // FPUã‚¹ã‚¿ãƒƒã‚¯ã‚’POPã—ã¦ãƒ‡ãƒ¼ã‚¿è»¢é€ãªã—
+    /*
+     * fstp st(0)	DDD8
+     */
+    unsigned char bin[] = {0xDD, 0xD8};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fldz(ECALC_JIT_TREE *tree)
 {
-	// FPU‚É0‚ğƒvƒbƒVƒ…
-	/*
-	 * fldz	D9EE
-	 */
-	unsigned char bin[] = {0xD9, 0xEE};
+    // FPUã«0ã‚’ãƒ—ãƒƒã‚·ãƒ¥
+    /*
+     * fldz	D9EE
+     */
+    unsigned char bin[] = {0xD9, 0xEE};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fld1( ECALC_JIT_TREE *tree )
 {
-	// FPU‚É1‚ğƒvƒbƒVƒ…
-	/*
-	 * fld1 D9E8
-	 */
-	unsigned char bin[] = {0xD9, 0xE8};
+    // FPUã«1ã‚’ãƒ—ãƒƒã‚·ãƒ¥
+    /*
+     * fld1 D9E8
+     */
+    unsigned char bin[] = {0xD9, 0xE8};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fldpi(ECALC_JIT_TREE *tree)
 {
-	// FPU‚Épi‚ğƒvƒbƒVƒ…
-	/*
-	 * fldpi	D9EB
-	 */
-	unsigned char bin[] = {0xD9, 0xEB};
+    // FPUã«piã‚’ãƒ—ãƒƒã‚·ãƒ¥
+    /*
+     * fldpi	D9EB
+     */
+    unsigned char bin[] = {0xD9, 0xEB};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_faddp(ECALC_JIT_TREE *tree)
 {
-	// st(1) <- st(1) + st(0), POP
-	/*
-	 * faddp	DEC1
-	 */
-	unsigned char bin[] = {0xDE, 0xC1};
+    // st(1) <- st(1) + st(0), POP
+    /*
+     * faddp	DEC1
+     */
+    unsigned char bin[] = {0xDE, 0xC1};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fadd( ECALC_JIT_TREE *tree, uint8_t st )
 {
-	// st(0) <- st(1) + st(0)
-	/*
-	 * fadd st(st)	D8Cs
-	 */
-	unsigned char bin[] = {0xD8, 0xC0};
+    // st(0) <- st(1) + st(0)
+    /*
+     * fadd st(st)	D8Cs
+     */
+    unsigned char bin[] = {0xD8, 0xC0};
 
-	bin[1] = bin[1] | st;
+    bin[1] = bin[1] | st;
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fsubp(ECALC_JIT_TREE *tree)
 {
-	// st(1) <- st(1) - st(0)
-	/*
-	 * fsubp	DEE9
-	 */
-	unsigned char bin[] = {0xDE, 0xE9};
+    // st(1) <- st(1) - st(0)
+    /*
+     * fsubp	DEE9
+     */
+    unsigned char bin[] = {0xDE, 0xE9};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fmulp(ECALC_JIT_TREE *tree)
 {
-	// st(1) <- st(1) * st(0)
-	/*
-	 * fmulp	DEC9
-	 */
-	unsigned char bin[] = {0xDE, 0xC9};
+    // st(1) <- st(1) * st(0)
+    /*
+     * fmulp	DEC9
+     */
+    unsigned char bin[] = {0xDE, 0xC9};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fdivp(ECALC_JIT_TREE *tree)
 {
-	// st(1) <- st(1) / st(0)
-	/*
-	 * fdivp	DEF9
-	 */
-	unsigned char bin[] = {0xDE, 0xF9};
+    // st(1) <- st(1) / st(0)
+    /*
+     * fdivp	DEF9
+     */
+    unsigned char bin[] = {0xDE, 0xF9};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fabs(ECALC_JIT_TREE *tree)
 {
-	// st(0) <- abs( st(0) )
-	/*
-	 * fabs	D9E1
-	 */
-	unsigned char bin[] = {0xD9, 0xE1};
+    // st(0) <- abs( st(0) )
+    /*
+     * fabs	D9E1
+     */
+    unsigned char bin[] = {0xD9, 0xE1};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fxch_st1(ECALC_JIT_TREE *tree)
 {
-	// st(0) <> st(1)
-	/*
-	 * fxch st(1)	D9C9
-	 */
-	unsigned char bin[] = {0xD9, 0xC9};
+    // st(0) <> st(1)
+    /*
+     * fxch st(1)	D9C9
+     */
+    unsigned char bin[] = {0xD9, 0xC9};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fchs( ECALC_JIT_TREE *tree )
 {
-	// st(0) <= -st(0)
-	/*
-	 * fchs	D9E0
-	 */
-	unsigned char bin[] = {0xD9, 0xE0};
+    // st(0) <= -st(0)
+    /*
+     * fchs	D9E0
+     */
+    unsigned char bin[] = {0xD9, 0xE0};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fsin(ECALC_JIT_TREE *tree)
 {
-	// st(0) <- sin( st(0) )
-	/*
-	 * fsin	D9FE
-	 */
-	unsigned char bin[] = {0xD9, 0xFE};
+    // st(0) <- sin( st(0) )
+    /*
+     * fsin	D9FE
+     */
+    unsigned char bin[] = {0xD9, 0xFE};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fsqrt(ECALC_JIT_TREE *tree)
 {
-	// st(0) <- sqrt( st(0) )
-	/*
-	 * fsqrt	D9FA
-	 */
-	unsigned char bin[] = {0xD9, 0xFA};
+    // st(0) <- sqrt( st(0) )
+    /*
+     * fsqrt	D9FA
+     */
+    unsigned char bin[] = {0xD9, 0xFA};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fcos(ECALC_JIT_TREE *tree)
 {
-	// st(0) <- cos( st(0) )
-	/*
-	 * fsin	D9FF
-	 */
-	unsigned char bin[] = {0xD9, 0xFF};
+    // st(0) <- cos( st(0) )
+    /*
+     * fsin	D9FF
+     */
+    unsigned char bin[] = {0xD9, 0xFF};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_fcomi(ECALC_JIT_TREE *tree, uint8_t st)
 {
-	// CPU‚Ì”äŠrƒtƒ‰ƒbƒO‚ğƒZƒbƒg‚³‚¹‚é st(0)‚Æst(st)‚Ì”äŠr
-	/*
-	 * fcomi st(st)	DBFs
-	 */
-	unsigned char bin[] = {0xDB, 0xF0};
+    // CPUã®æ¯”è¼ƒãƒ•ãƒ©ãƒƒã‚°ã‚’ã‚»ãƒƒãƒˆã•ã›ã‚‹ st(0)ã¨st(st)ã®æ¯”è¼ƒ
+    /*
+     * fcomi st(st)	DBFs
+     */
+    unsigned char bin[] = {0xDB, 0xF0};
 
-	bin[1] = bin[1] | st;
+    bin[1] = bin[1] | st;
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_load_exp_ans_ptr_to_eax(ECALC_JIT_TREE *tree)
 {
-	// eax‚Éans‚Ìƒ|ƒCƒ“ƒ^ƒZƒbƒg
-	ecalc_bin_printer_load_arg_ptr_to_eax( tree, 12 );
+    // eaxã«ansã®ãƒã‚¤ãƒ³ã‚¿ã‚»ãƒƒãƒˆ
+    ecalc_bin_printer_load_arg_ptr_to_eax( tree, 12 );
 }
 
 void ecalc_bin_printer_load_exp_var_ptr_to_eax( ECALC_JIT_TREE *tree, int index )
 {
-	// eax‚Évar[index]‚Ìƒ|ƒCƒ“ƒ^‚ğƒZƒbƒg
-	unsigned char bin[] = {0x8D, 0x04, 0x90};
+    // eaxã«var[index]ã®ãƒã‚¤ãƒ³ã‚¿ã‚’ã‚»ãƒƒãƒˆ
+    unsigned char bin[] = {0x8D, 0x04, 0x90};
 
-	// EAX‚Édouble**‚ÌêŠ‚ğƒ[ƒh
-	ecalc_bin_printer_load_arg_ptr_to_eax( tree, 8 );
+    // EAXã«double**ã®å ´æ‰€ã‚’ãƒ­ãƒ¼ãƒ‰
+    ecalc_bin_printer_load_arg_ptr_to_eax( tree, 8 );
 
-	// EAX‚Édouble**‚Ì’liˆø”‚Ì’lj‚ğƒ[ƒh
-	ecalc_bin_printer_load_eax_pointed_to_eax( tree, 0 );
+    // EAXã«double**ã®å€¤ï¼ˆå¼•æ•°ã®å€¤ï¼‰ã‚’ãƒ­ãƒ¼ãƒ‰
+    ecalc_bin_printer_load_eax_pointed_to_eax( tree, 0 );
 
-	// index‚ğedx‚Éƒ[ƒh
-	ecalc_bin_printer_load_val_to_edx( tree, index );
+    // indexã‚’edxã«ãƒ­ãƒ¼ãƒ‰
+    ecalc_bin_printer_load_val_to_edx( tree, index );
 
-	// •Ï”‚ÌƒAƒhƒŒƒXŒvZ
-	// lea eax, [eax+edx*4]	8D0490
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    // å¤‰æ•°ã®ã‚¢ãƒ‰ãƒ¬ã‚¹è¨ˆç®—
+    // lea eax, [eax+edx*4]	8D0490
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 
-	// EAX‚Édouble*‚Ì’l‚ğƒ[ƒh
-	ecalc_bin_printer_load_eax_pointed_to_eax( tree, 0 );
+    // EAXã«double*ã®å€¤ã‚’ãƒ­ãƒ¼ãƒ‰
+    ecalc_bin_printer_load_eax_pointed_to_eax( tree, 0 );
 }
 
 void ecalc_bin_printer_load_function_ptr_to_eax( ECALC_JIT_TREE *tree, void ( *func )( void ) )
 {
-	// eax‚ÉŠÖ”ƒ|ƒCƒ“ƒ^i‘¦’lj‚ğ“Ç‚İ‚Ş
-	/*
-	 * mov eax, val	B8vvvvvvvv
-	 */
-	unsigned char bin[] = {0xB8, 0x00, 0x00, 0x00, 0x00};
+    // eaxã«é–¢æ•°ãƒã‚¤ãƒ³ã‚¿ï¼ˆå³å€¤ï¼‰ã‚’èª­ã¿è¾¼ã‚€
+    /*
+     * mov eax, val	B8vvvvvvvv
+     */
+    unsigned char bin[] = {0xB8, 0x00, 0x00, 0x00, 0x00};
 
-	memcpy( bin + 1, &func, sizeof( void ( * )( void ) ) );
+    memcpy( bin + 1, &func, sizeof( void ( * )( void ) ) );
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_mov_eax_ecx(ECALC_JIT_TREE *tree)
 {
-	// ECX‚ğEAX‚ÉƒRƒs[
-	/*
-	 * mov eax, ecx	89C8
-	 */
-	unsigned char bin[] = {0x89, 0xC8};
+    // ECXã‚’EAXã«ã‚³ãƒ”ãƒ¼
+    /*
+     * mov eax, ecx	89C8
+     */
+    unsigned char bin[] = {0x89, 0xC8};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_mov_ecx_eax(ECALC_JIT_TREE *tree)
 {
-	// EAX‚ğECX‚ÉƒRƒs[
-	/*
-	 * mov ecx, eax	89C1
-	 */
-	unsigned char bin[] = {0x89, 0xC1};
+    // EAXã‚’ECXã«ã‚³ãƒ”ãƒ¼
+    /*
+     * mov ecx, eax	89C1
+     */
+    unsigned char bin[] = {0x89, 0xC1};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_mov_eax_edx(ECALC_JIT_TREE *tree)
 {
-	// EDX‚ğEAX‚ÉƒRƒs[
-	/*
-	 * mov eax, edx	89D0
-	 */
-	unsigned char bin[] = {0x89, 0xD0};
+    // EDXã‚’EAXã«ã‚³ãƒ”ãƒ¼
+    /*
+     * mov eax, edx	89D0
+     */
+    unsigned char bin[] = {0x89, 0xD0};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_mov_edx_eax(ECALC_JIT_TREE *tree)
 {
-	// EAX‚ğEDX‚ÉƒRƒs[
-	/*
-	 * mov edx, eax	89C2
-	 */
-	unsigned char bin[] = {0x89, 0xC2};
+    // EAXã‚’EDXã«ã‚³ãƒ”ãƒ¼
+    /*
+     * mov edx, eax	89C2
+     */
+    unsigned char bin[] = {0x89, 0xC2};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_call( ECALC_JIT_TREE *tree )
 {
-	// EAX‚Ìw‚·ŠÖ”‚ğƒR[ƒ‹
-	/*
-	 * call eax	FFD0
-	 */
-	unsigned char bin[] = {0xFF, 0xD0};
+    // EAXã®æŒ‡ã™é–¢æ•°ã‚’ã‚³ãƒ¼ãƒ«
+    /*
+     * call eax	FFD0
+     */
+    unsigned char bin[] = {0xFF, 0xD0};
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_load_val_to_edx(ECALC_JIT_TREE *tree, int32_t val)
 {
-	// EDX‚É32ƒrƒbƒg®”val‚ğƒ[ƒh
-	/*
-	 * mov edx, val	BAvvvvvvvv
-	 */
-	unsigned char bin[] = {0xBA, 0x00, 0x00, 0x00, 0x00};
+    // EDXã«32ãƒ“ãƒƒãƒˆæ•´æ•°valã‚’ãƒ­ãƒ¼ãƒ‰
+    /*
+     * mov edx, val	BAvvvvvvvv
+     */
+    unsigned char bin[] = {0xBA, 0x00, 0x00, 0x00, 0x00};
 
-	memcpy( bin + 1, &val, sizeof(int32_t) );
+    memcpy( bin + 1, &val, sizeof(int32_t) );
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 void ecalc_bin_printer_add_esp_i8(ECALC_JIT_TREE *tree, int8_t val)
 {
-	// ESP‚Éval‚ğ‚½‚·
-	/*
-	 * add esp, val	83C4vv
-	 */
-	unsigned char bin[] = {0x83, 0xC4, 0x00};
+    // ESPã«valã‚’ãŸã™
+    /*
+     * add esp, val	83C4vv
+     */
+    unsigned char bin[] = {0x83, 0xC4, 0x00};
 
-	bin[2] = val;
+    bin[2] = val;
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 }
 
 size_t ecalc_bin_printer_je(ECALC_JIT_TREE *tree, int32_t val)
 {
-	// Z=1‚È‚ç32bit‘Š‘ÎƒWƒƒƒ“ƒv
-	// ƒAƒhƒŒƒX‚ğŒã‚Å“ü—Í‚·‚é‚½‚ß‚ÉƒAƒhƒŒƒX‚ğ‘‚­ˆÊ’u‚ğ•Ô‚·
-	/*
-	 * je w’èæ	0F84vvvvvvvv
-	 */
-	unsigned char bin[] = {0x0F, 0x84, 0x00, 0x00, 0x00, 0x00};
+    // Z=1ãªã‚‰32bitç›¸å¯¾ã‚¸ãƒ£ãƒ³ãƒ—
+    // ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’å¾Œã§å…¥åŠ›ã™ã‚‹ãŸã‚ã«ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’æ›¸ãä½ç½®ã‚’è¿”ã™
+    /*
+     * je æŒ‡å®šå…ˆ	0F84vvvvvvvv
+     */
+    unsigned char bin[] = {0x0F, 0x84, 0x00, 0x00, 0x00, 0x00};
 
-	memcpy( bin + 2, &val, sizeof(int32_t) );
+    memcpy( bin + 2, &val, sizeof(int32_t) );
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 
-	return tree->pos - 4;
+    return tree->pos - 4;
 }
 
 size_t ecalc_bin_printer_jmp(ECALC_JIT_TREE *tree, int32_t val)
 {
-	// 32bit‘Š‘ÎƒWƒƒƒ“ƒv
-	// ƒAƒhƒŒƒX‚ğŒã‚Å“ü—Í‚·‚é‚½‚ß‚ÉƒAƒhƒŒƒX‚ğ‘‚­ˆÊ’u‚ğ•Ô‚·
-	/*
-	 * jmp w’èæ	E9vvvvvvvv
-	 */
-	unsigned char bin[] = {0xE9, 0x00, 0x00, 0x00, 0x00};
+    // 32bitç›¸å¯¾ã‚¸ãƒ£ãƒ³ãƒ—
+    // ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’å¾Œã§å…¥åŠ›ã™ã‚‹ãŸã‚ã«ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’æ›¸ãä½ç½®ã‚’è¿”ã™
+    /*
+     * jmp æŒ‡å®šå…ˆ	E9vvvvvvvv
+     */
+    unsigned char bin[] = {0xE9, 0x00, 0x00, 0x00, 0x00};
 
-	memcpy( bin + 1, &val, sizeof(int32_t) );
+    memcpy( bin + 1, &val, sizeof(int32_t) );
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 
-	return tree->pos - 4;
+    return tree->pos - 4;
 }
 
 size_t ecalc_bin_printer_jb(ECALC_JIT_TREE *tree, int32_t val)
 {
-	// CF=1‚È‚ç32bit‘Š‘ÎƒWƒƒƒ“ƒv
-	// ƒAƒhƒŒƒX‚ğŒã‚Å“ü—Í‚·‚é‚½‚ß‚ÉƒAƒhƒŒƒX‚ğ‘‚­ˆÊ’u‚ğ•Ô‚·
-	/*
-	 * je w’èæ	0F82vvvvvvvv
-	 */
-	unsigned char bin[] = {0x0F, 0x82, 0x00, 0x00, 0x00, 0x00};
+    // CF=1ãªã‚‰32bitç›¸å¯¾ã‚¸ãƒ£ãƒ³ãƒ—
+    // ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’å¾Œã§å…¥åŠ›ã™ã‚‹ãŸã‚ã«ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’æ›¸ãä½ç½®ã‚’è¿”ã™
+    /*
+     * je æŒ‡å®šå…ˆ	0F82vvvvvvvv
+     */
+    unsigned char bin[] = {0x0F, 0x82, 0x00, 0x00, 0x00, 0x00};
 
-	memcpy( bin + 2, &val, sizeof(int32_t) );
+    memcpy( bin + 2, &val, sizeof(int32_t) );
 
-	ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
+    ecalc_bin_printer_print( tree, bin, sizeof( bin ) );
 
-	return tree->pos - 4;
+    return tree->pos - 4;
 }

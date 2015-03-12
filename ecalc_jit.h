@@ -5,8 +5,8 @@
 #include <stdint.h>
 
 /*
- * ŠÖ”ƒ|ƒCƒ“ƒ^æ“¾
- * ŠÖ”ƒR[ƒ‹ˆø”1,2
+ * é–¢æ•°ãƒã‚¤ãƒ³ã‚¿å–å¾—
+ * é–¢æ•°ã‚³ãƒ¼ãƒ«å¼•æ•°1,2
  *
  *
  */
@@ -15,11 +15,11 @@
 extern "C" {
 #endif
 
-// JITƒGƒ“ƒWƒ“—p‚Ìƒf[ƒ^Ši”[
+// JITã‚¨ãƒ³ã‚¸ãƒ³ç”¨ã®ãƒ‡ãƒ¼ã‚¿æ ¼ç´
 typedef struct {
-	size_t size;
-	size_t pos;
-	unsigned char *data;
+    size_t size;
+    size_t pos;
+    unsigned char *data;
 } ECALC_JIT_TREE;
 
 // public
@@ -41,13 +41,13 @@ void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *token );
 void ecalc_bin_printer_operator( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *token );
 void ecalc_bin_printer_function_call( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *token );
 
-// ƒoƒCƒg—ñ‘‚«‚İ•â•
+// ãƒã‚¤ãƒˆåˆ—æ›¸ãè¾¼ã¿è£œåŠ©
 void ecalc_bin_printer_print(ECALC_JIT_TREE *tree, unsigned char *buf, size_t size );
 size_t ecalc_bin_printer_get_pos( ECALC_JIT_TREE *tree );
 void ecalc_bin_printer_reset_tree( ECALC_JIT_TREE *tree );
 void ecalc_bin_printer_set_address( ECALC_JIT_TREE *tree, size_t pos, int32_t address );
 
-// ƒAƒZƒ“ƒuƒ‰‚É‘Î‰‚·‚éƒŒƒxƒ‹‚ÌŠÖ”
+// ã‚¢ã‚»ãƒ³ãƒ–ãƒ©ã«å¯¾å¿œã™ã‚‹ãƒ¬ãƒ™ãƒ«ã®é–¢æ•°
 void ecalc_bin_printer_load_arg_ptr_to_eax( ECALC_JIT_TREE *tree, int8_t val );
 void ecalc_bin_printer_load_var_ptr_to_eax( ECALC_JIT_TREE *tree, int8_t val );
 void ecalc_bin_printer_load_eax_pointed_to_eax( ECALC_JIT_TREE *tree, int8_t val );
