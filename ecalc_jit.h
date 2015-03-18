@@ -3,6 +3,14 @@
 
 #include "ecalc.h"
 #include <stdint.h>
+#include <stdlib.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#include <sys/mman.h>
+#endif
 
 /*
  * 関数ポインタ取得
@@ -29,7 +37,7 @@ double ecalc_get_jit_tree_value( ECALC_JIT_TREE *tree, double **vars, double ans
 
 // static
 void *ecalc_allocate_jit_memory( size_t size );
-void ecalc_free_jit_memory( void *data );
+void ecalc_free_jit_memory( void *data, size_t size );
 size_t ecalc_get_jit_tree_size( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *token );
 void ecalc_set_jit_function_pointers( ECALC_JIT_TREE *tree );
 

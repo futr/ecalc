@@ -1,9 +1,5 @@
 #include "ecalc_jit.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 // ecalcjitエンジン 32bitのWindows用
 // 出力するバイナリが86用、呼び出し規約も86用cdeclです
 // 命令セットはi686以降（だと思います）
@@ -47,7 +43,7 @@ void ecalc_free_jit_tree( ECALC_JIT_TREE *tree )
     }
 
     // 実行可能メモリ空間破棄
-    ecalc_free_jit_memory( tree->data );
+    ecalc_free_jit_memory( tree->data, tree->size );
 
     free( tree );
 }
@@ -58,16 +54,39 @@ void *ecalc_allocate_jit_memory( size_t size )
 #ifdef _WIN32
     return VirtualAlloc( NULL, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE );
 #else
-    return NULL;
+    void *ptr;
+    long pageSize;
+
+    // Detect page size
+#ifdef _SC_PAGESIZE
+    pageSize = sysconf( _SC_PAGESIZE );
+#elif defined(_SC_PAGE_SIZE)
+    pageSize = sysconf( _SC_PAGE_SIZE );
+#else
+    pageSize = 4096;
+#endif
+
+    // posix_memaling and mprotect?
+    // Allocate jit memory space
+    ptr = mmap( NULL, size, PROT_EXEC | PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0 );
+
+    if ( ptr == MAP_FAILED ) {
+        return NULL;
+    }
+
+    return ptr;
 #endif
 }
 
-void ecalc_free_jit_memory( void *data )
+void ecalc_free_jit_memory( void *data , size_t size )
 {
     // JIT用バイナリ空間破棄
 #ifdef _WIN32
     VirtualFree( data, 0, MEM_RELEASE );
 #else
+    if ( data != NULL ) {
+        munmap( data, size );
+    }
 #endif
 }
 
