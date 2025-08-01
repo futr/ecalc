@@ -8,6 +8,10 @@
 #include <math.h>
 #include <float.h>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 #define ECALC_MEMMAN_TOKENS     512                         /* メモリマネージャーで使うトークン数 */
 
 #define ECALC_FUNC_COUNT        10                          /* 関数の数 */
