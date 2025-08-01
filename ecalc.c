@@ -909,7 +909,7 @@ double ecalc_get_tree_value( struct ECALC_TOKEN *token, double **vars, double an
     int i;
     double left  = 0;           /* 初期値は0なので例えば0@(3)は0となる */
     double right = 0;
-    double *left_var;
+    double *left_var = NULL;
 
     /* NULLなら何もしない */
     if ( token == NULL ) {
