@@ -33,15 +33,15 @@ void ecalc_free_jit_tree( ECALC_JIT_TREE *tree )
     // JITエンジン破棄
 #ifdef _WIN32
     #ifdef _WIN64
-    return ecalc_free_jit_tree_amd64( token );
+    return ecalc_free_jit_tree_amd64( tree );
     #else
-    return ecalc_free_jit_tree_i386( token );
+    return ecalc_free_jit_tree_i386( tree );
     #endif
 #else
     #ifdef __x86_64__
     return ecalc_free_jit_tree_amd64( tree );
     #else
-    return ecalc_free_jit_tree_i386( token );
+    return ecalc_free_jit_tree_i386( tree );
     #endif
 #endif
 }
