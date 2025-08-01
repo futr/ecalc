@@ -14,7 +14,7 @@ int main( int argc, char **argv )
     double *vars[ECALC_VAR_COUNT];
     double ans = 0;
 
-    puts( "exit と入力すると終了" );
+    puts( "enter exit to exit" );
 
     /* メモリマネージャ初期化 */
     ecalc_memman_init();
@@ -34,7 +34,7 @@ int main( int argc, char **argv )
 ECALC_RECALC:
 
     /* 式読み込み */
-    printf( "式 > " );
+    printf( "> " );
 
     for ( i = 0, data[255] = '\0'; i < 255; i++ ) {
         get = getc( stdin );
