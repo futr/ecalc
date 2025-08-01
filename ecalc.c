@@ -40,7 +40,8 @@ static struct ECALC_RESERVED_CONTAINER ecalc_reserved[] = {
     { "POWER", ECALC_TOKEN_FUNC_TWO, ECALC_FUNC_POW,   (void (*)( void ))pow },
     { "ATAN2", ECALC_TOKEN_FUNC_TWO, ECALC_FUNC_ATAN2, (void (*)( void ))atan2 },
     { "MOD",   ECALC_TOKEN_FUNC_TWO, ECALC_OPE_MOD,    (void (*)( void ))fmod },
-    { "IF",    ECALC_TOKEN_FUNC_TWO, ECALC_FUNC_IF,    NULL }
+    { "IF",    ECALC_TOKEN_FUNC_TWO, ECALC_FUNC_IF,    NULL },
+    { "THEN",  ECALC_TOKEN_FUNC_TWO, ECALC_FUNC_IF,    NULL }
 };
 
 /* ------------- メモリマネージャ ------------- */
