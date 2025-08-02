@@ -99,7 +99,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
     const int left  = -8;
     const int right = -16;
     const int dbuf  = -24;
-    int depth = 24;
+    int depth = 32;
     size_t pos1, pos2, pos3, pos4, apos1, apos2, apos3;
 
     // EXP以外なら強制ゼロ
