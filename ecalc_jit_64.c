@@ -125,6 +125,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
             ecalc_bin_printer_load_exp_var_ptr_to_rax( tree, token->left->value );
             ecalc_bin_printer_load_double_val_on_rax_to_xmm0( tree, 0 );
 
+            // RAX復帰
             ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
             ecalc_bin_printer_store_double_val_xmm0_on_rax( tree, left );
         } else if ( token->left->type == ECALC_TOKEN_EXP ) {
@@ -133,6 +134,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
             ecalc_bin_printer_tree_64( tree, token->left );
             ecalc_bin_printer_add_rsp_i8( tree, +depth );
 
+            // RAX復帰
             ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
             ecalc_bin_printer_store_double_val_xmm0_on_rax( tree, left );
         } else {
@@ -150,7 +152,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
             // 右辺値変数値を右にセット
             ecalc_bin_printer_load_exp_var_ptr_to_rax( tree, token->right->value );
             ecalc_bin_printer_load_double_val_on_rax_to_xmm0( tree, 0 );
-
+            // RAX復帰
             ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
             ecalc_bin_printer_store_double_val_xmm0_on_rax( tree, right );
         } else if ( token->right->type == ECALC_TOKEN_EXP ) {
@@ -166,7 +168,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
                 // for ( i = 0; i != left; i++ ) {
 
                 // ループ回数をRDXにロード
-                ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
+                // ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
                 ecalc_bin_printer_load_double_val_on_rax_to_xmm0( tree, left );
                 ecalc_bin_printer_convert_double_xmm0_to_int_rdx( tree );
 
@@ -195,6 +197,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
                 ecalc_bin_printer_add_rsp_i8( tree, +depth );
 
                 // 戻り値をrightに設定
+                // RAX復帰
                 ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
                 ecalc_bin_printer_store_double_val_xmm0_on_rax( tree, right );
 
@@ -222,7 +225,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
                 ecalc_bin_printer_clear_xmm0( tree );
 
                 // XMM1 = left
-                ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
+                // ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
                 ecalc_bin_printer_load_double_val_on_rax_to_xmm1( tree, left );
 
                 // XMM1とXMM2を比較
@@ -238,6 +241,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
                 ecalc_bin_printer_add_rsp_i8( tree, -depth );
                 ecalc_bin_printer_tree_64( tree, token->right );
                 ecalc_bin_printer_add_rsp_i8( tree, +depth );
+                // RAX復帰
                 ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
                 ecalc_bin_printer_store_double_val_xmm0_on_rax( tree, right );
 
@@ -255,7 +259,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
                 ecalc_bin_printer_add_rsp_i8( tree, -depth );
                 ecalc_bin_printer_tree_64( tree, token->right );
                 ecalc_bin_printer_add_rsp_i8( tree, +depth );
-
+                // RAX復帰
                 ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
                 ecalc_bin_printer_store_double_val_xmm0_on_rax( tree, right );
             }
@@ -264,6 +268,9 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
             ecalc_bin_printer_store_double_val_on_rax( tree, right, 0 );
         }
     }
+
+    // 念の為RAX復帰
+    // ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
 
     // XMM0 = left, XMM1 = right
     ecalc_bin_printer_load_double_val_on_rax_to_xmm0( tree, left );
@@ -340,7 +347,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
         ecalc_bin_printer_load_function_ptr_to_rax( tree, ecalc_get_func_addr( token->value ) );
         ecalc_bin_printer_call_on_rax( tree );
 
-        // RAX復帰（多分不要）
+        // RAX復帰
         ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
 
         // 無条件にpos3の終了までジャンプ
@@ -404,7 +411,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
         pos2 = ecalc_bin_printer_get_pos( tree );
 
         // right < left なのでXMM0 = 1
-        ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
+        // ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
         ecalc_bin_printer_store_double_val_on_rax( tree, dbuf, 1 );
         ecalc_bin_printer_load_double_val_on_rax_to_xmm0( tree, dbuf );
 
@@ -454,7 +461,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
         pos3 = ecalc_bin_printer_get_pos( tree );
 
         // left <= right なのでXMM0 = 1
-        ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
+        // ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
         ecalc_bin_printer_store_double_val_on_rax( tree, dbuf, 1 );
         ecalc_bin_printer_load_double_val_on_rax_to_xmm0( tree, dbuf );
 
@@ -489,7 +496,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
         pos2 = ecalc_bin_printer_get_pos( tree );
 
         // right == left なのでなのでXMM0 = 1
-        ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
+        // ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
         ecalc_bin_printer_store_double_val_on_rax( tree, dbuf, 1 );
         ecalc_bin_printer_load_double_val_on_rax_to_xmm0( tree, dbuf );
 
@@ -510,7 +517,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
     case ECALC_FUNC_LOG10:              /* log10 */
     case ECALC_FUNC_LOGN:               /* logn */
         // 引数としてXMM0 = rightをセット
-        ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
+        // ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
         ecalc_bin_printer_load_double_val_on_rax_to_xmm0( tree, right );
 
         // 関数ポインタをraxにロード・コール
@@ -518,6 +525,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
         ecalc_bin_printer_add_rsp_i8( tree, -depth );
         ecalc_bin_printer_call_on_rax( tree );
         ecalc_bin_printer_add_rsp_i8( tree, +depth );
+        // RAX復帰
         ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
 
         break;
@@ -536,13 +544,14 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
         ecalc_bin_printer_add_rsp_i8( tree, -depth );
         ecalc_bin_printer_call_on_rax( tree );
         ecalc_bin_printer_add_rsp_i8( tree, +depth );
+        // RAX復帰
         ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
 
         break;
     case ECALC_FUNC_RAD:
         // rad
         // RAXを現在のスタック先頭に
-        ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
+        // ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
 
         // XMM0 = XMM1
         ecalc_bin_printer_mov_double_xmm1_to_xmm0( tree );
@@ -558,7 +567,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
     case ECALC_FUNC_DEG:
         // deg
         // RAXを現在のスタック先頭に
-        ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
+        // ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
 
         // XMM0 = XMM1
         ecalc_bin_printer_mov_double_xmm1_to_xmm0( tree );
@@ -573,14 +582,14 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
         break;
     case ECALC_FUNC_PI:
         // π
-        ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
+        // ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
         ecalc_bin_printer_store_double_val_on_rax( tree, dbuf, M_PI );
         ecalc_bin_printer_load_double_val_on_rax_to_xmm0( tree, dbuf );
 
         break;
     case ECALC_FUNC_EPS0:
         // ε0
-        ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
+        // ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
         ecalc_bin_printer_store_double_val_on_rax( tree, dbuf, 8.85418782e-12 );
         ecalc_bin_printer_load_double_val_on_rax_to_xmm0( tree, dbuf );
 
@@ -589,6 +598,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
         // ans
         ecalc_bin_printer_load_exp_ans_ptr_to_rax( tree );
         ecalc_bin_printer_load_double_val_on_rax_to_xmm0( tree, 0 );
+        // RAX復帰
         ecalc_bin_printer_load_var_ptr_to_rax( tree, 0 );
 
         break;
