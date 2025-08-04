@@ -1,4 +1,5 @@
 #include "ecalc_jit_64_private.h"
+#include <stdint.h>
 
 // ecalcjit x86_64
 
@@ -904,7 +905,11 @@ static void ecalc_bin_printer_store_double_val_xmm1_on_rax( ECALC_JIT_TREE *tree
 static void ecalc_bin_printer_store_double_val_on_rax(ECALC_JIT_TREE *tree, int8_t pos, double val)
 {
     // doubleをrax+posの指す位置にストア
-    ecalc_bin_printer_store_u64_val_to_rdx( tree, *(uint64_t *)(&val) );
+    uint64_t buf;
+
+    memcpy( &buf, &val, sizeof(uint64_t) );
+
+    ecalc_bin_printer_store_u64_val_to_rdx( tree, buf );
     ecalc_bin_printer_store_rdx_on_rax( tree, pos );
 }
 

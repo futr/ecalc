@@ -1,6 +1,7 @@
 #include "ecalc_jit.h"
 #include "ecalc_jit_32.h"
 #include "ecalc_jit_32_private.h"
+#include <stdint.h>
 
 // ecalcjitエンジン 32bitのWindows用
 // 出力するバイナリが86用、呼び出し規約も86用cdeclです
@@ -788,8 +789,13 @@ static void ecalc_bin_printer_store_dword_val(ECALC_JIT_TREE *tree, int8_t pos, 
 static void ecalc_bin_printer_store_double_val(ECALC_JIT_TREE *tree, int8_t pos, double val)
 {
     // doubleをeax+posの指す位置にストア
-    ecalc_bin_printer_store_dword_val( tree, pos,     *(uint32_t *)( ( (unsigned char *)&val ) + 0 ) );
-    ecalc_bin_printer_store_dword_val( tree, pos + 4, *(uint32_t *)( ( (unsigned char *)&val ) + 4 ) );
+    uint32_t buf[2];
+
+    memcpy( buf + 0, ( (unsigned char *)&val ) + 0, sizeof(uint32_t) );
+    memcpy( buf + 1, ( (unsigned char *)&val ) + 4, sizeof(uint32_t) );
+
+    ecalc_bin_printer_store_dword_val( tree, pos,     buf[0] );
+    ecalc_bin_printer_store_dword_val( tree, pos + 4, buf[1] );
 }
 
 static void ecalc_bin_printer_push_dword(ECALC_JIT_TREE *tree, int8_t val)
