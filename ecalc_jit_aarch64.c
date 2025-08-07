@@ -70,7 +70,7 @@ double ecalc_get_jit_tree_value_aarch64( ECALC_JIT_TREE *tree, double **vars, do
     #ifdef __APPLE__
     sys_icache_invalidate( tree->data, tree->size );
     #else
-    __builtin___clear_cache( tree->data, tree->data + tree->size );
+    __builtin___clear_cache( (char *)tree->data, (char *)tree->data + tree->size );
     #endif
 #endif
 
