@@ -39,17 +39,17 @@ void ecalc_free_jit_tree( ECALC_JIT_TREE *tree )
     // JITエンジン破棄
 #ifdef _WIN32
     #ifdef _WIN64
-    return ecalc_free_jit_tree_amd64( tree );
+    ecalc_free_jit_tree_amd64( tree );
     #else
-    return ecalc_free_jit_tree_i386( tree );
+    ecalc_free_jit_tree_i386( tree );
     #endif
 #else
     #if   defined (__aarch64__)
-    return ecalc_free_jit_tree_aarch64( tree );
+    ecalc_free_jit_tree_aarch64( tree );
     #elif defined (__x86_64__)
-    return ecalc_free_jit_tree_amd64( tree );
+    ecalc_free_jit_tree_amd64( tree );
     #elif defined (__i386__)
-    return ecalc_free_jit_tree_i386( tree );
+    ecalc_free_jit_tree_i386( tree );
     #endif
 #endif
 }
