@@ -807,7 +807,7 @@ static size_t ecalc_bin_printer_b_cond( ECALC_JIT_TREE *tree, uint64_t write_pos
      * b.cond label
      * 0101 0100 iiii iiii iiii iiii iii0 cccc
      */
-    uint32_t buf   = 0x34000000;
+    uint32_t buf   = 0x54000000;
     uint32_t mask  = 0x00FFFFE0;
     uint32_t imm19 = ( ( label / 4 ) << 5 ) & mask;
 
