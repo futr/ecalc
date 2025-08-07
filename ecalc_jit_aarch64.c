@@ -213,7 +213,7 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
                 pos2 = ecalc_bin_printer_get_pos( tree );
 
                 // 実行 X0とX1が破壊される可能性があるので退避
-                ecalc_bin_printer_stp_Xreg_on_Xreg_pre_index( tree, A64_X0, A64_X1, A64_SP, 16 );
+                ecalc_bin_printer_stp_Xreg_on_Xreg_pre_index( tree, A64_X0, A64_X1, A64_SP, -16 );
                 ecalc_bin_printer_tree( tree, token->right );
                 ecalc_bin_printer_ldp_Xreg_on_Xreg_post_index( tree, A64_X0, A64_X1, A64_SP, 16 );
 
@@ -232,8 +232,8 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
                 pos3 = ecalc_bin_printer_get_pos( tree );
 
                 // ジャンプアドレス埋め込み
-                ecalc_bin_printer_set_b_cond_label( tree, apos1, pos3 - pos2 );
-                ecalc_bin_printer_set_b_label( tree, apos2, pos1 - pos3 );
+                ecalc_bin_printer_set_b_cond_label( tree, apos1, pos3 - apos1 );
+                ecalc_bin_printer_set_b_label(      tree, apos2, pos1 - apos2 );
                 // }
             } else if ( token->value == ECALC_FUNC_IF ) {
                 // if式
@@ -269,7 +269,7 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
                 pos2 = ecalc_bin_printer_get_pos( tree );
 
                 // ジャンプアドレス埋め込み
-                ecalc_bin_printer_set_b_cond_label( tree, apos1, pos2 - pos1 );
+                ecalc_bin_printer_set_b_cond_label( tree, apos1, pos2 - apos1 );
 
                 // right = left
                 ecalc_bin_printer_ldr_DFPreg_on_Xreg_offset_uimm12( tree, A64_D0, A64_X9, left );
@@ -339,8 +339,8 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
         pos3 = ecalc_bin_printer_get_pos( tree );
 
         // ジャンプアドレス決定
-        ecalc_bin_printer_set_b_cond_label( tree, apos1, pos2 - pos1 );
-        ecalc_bin_printer_set_b_label( tree,      apos2, pos3 - pos2 );
+        ecalc_bin_printer_set_b_cond_label( tree, apos1, pos2 - apos1 );
+        ecalc_bin_printer_set_b_label( tree,      apos2, pos3 - apos2 );
 
         break;
     case ECALC_OPE_MOD:
@@ -379,8 +379,8 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
         pos3 = ecalc_bin_printer_get_pos( tree );
 
         // ジャンプアドレス決定
-        ecalc_bin_printer_set_b_cond_label( tree, apos1, pos2 - pos1 );
-        ecalc_bin_printer_set_b_label( tree,      apos2, pos3 - pos2 );
+        ecalc_bin_printer_set_b_cond_label( tree, apos1, pos2 - apos1 );
+        ecalc_bin_printer_set_b_label( tree,      apos2, pos3 - apos2 );
 
         break;
     case ECALC_OPE_STI:
@@ -443,9 +443,9 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
         pos4 = ecalc_bin_printer_get_pos( tree );
 
         // ジャンプアドレス埋め込み
-        ecalc_bin_printer_set_b_cond_label( tree, apos1, pos2 - pos1 );
-        ecalc_bin_printer_set_b_cond_label( tree, apos2, pos3 - pos2 );
-        ecalc_bin_printer_set_b_label(      tree, apos3, pos4 - pos3 );
+        ecalc_bin_printer_set_b_cond_label( tree, apos1, pos2 - apos1 );
+        ecalc_bin_printer_set_b_cond_label( tree, apos2, pos3 - apos2 );
+        ecalc_bin_printer_set_b_label(      tree, apos3, pos4 - apos3 );
 
         break;
     case ECALC_OPE_RBIG:
@@ -483,9 +483,9 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
         pos4 = ecalc_bin_printer_get_pos( tree );
 
         // ジャンプアドレス埋め込み
-        ecalc_bin_printer_set_b_cond_label( tree, apos1, pos3 - pos1 );
-        ecalc_bin_printer_set_b_cond_label( tree, apos2, pos3 - pos2 );
-        ecalc_bin_printer_set_b_label(      tree, apos3, pos4 - pos3 );
+        ecalc_bin_printer_set_b_cond_label( tree, apos1, pos3 - apos1 );
+        ecalc_bin_printer_set_b_cond_label( tree, apos2, pos3 - apos2 );
+        ecalc_bin_printer_set_b_label(      tree, apos3, pos4 - apos3 );
 
         break;
     case ECALC_OPE_EQU:
@@ -517,8 +517,8 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
         pos3 = ecalc_bin_printer_get_pos( tree );
 
         // ジャンプアドレス埋め込み
-        ecalc_bin_printer_set_b_cond_label( tree, apos1, pos2 - pos1 );
-        ecalc_bin_printer_set_b_label(      tree, apos2, pos3 - pos2 );
+        ecalc_bin_printer_set_b_cond_label( tree, apos1, pos2 - apos1 );
+        ecalc_bin_printer_set_b_label(      tree, apos2, pos3 - apos2 );
 
         break;
     case ECALC_FUNC_SIN:
