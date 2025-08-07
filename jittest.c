@@ -72,6 +72,9 @@ ECALC_CALC:
         // JITコンパイル
         jit = ecalc_create_jit_tree( tok );
 
+        // 変換結果出力
+        ecalc_save_jit_binary( jit, "jit.bin" );
+
         // JIT実行
         ans = ecalc_get_jit_tree_value( jit, vars, ans );
 
