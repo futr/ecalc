@@ -95,9 +95,9 @@ void *ecalc_allocate_jit_memory( size_t size )
     // posix_memaling and mprotect?
     // Allocate jit memory space
 #if defined(__aarch64__) && defined(__APPLE__)
-    ptr = mmap( NULL, size, PROT_EXEC | PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0 );
-#else
     ptr = mmap( NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0 );
+#else
+    ptr = mmap( NULL, size, PROT_EXEC | PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0 );
 #endif
     if ( ptr == MAP_FAILED ) {
         return NULL;
