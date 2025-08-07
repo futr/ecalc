@@ -81,15 +81,15 @@ void *ecalc_allocate_jit_memory( size_t size )
     return VirtualAlloc( NULL, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE );
 #else
     void *ptr;
-    long pageSize;
+    // long pageSize;
 
     // Detect page size
 #ifdef _SC_PAGESIZE
-    pageSize = sysconf( _SC_PAGESIZE );
+    // pageSize = sysconf( _SC_PAGESIZE );
 #elif defined(_SC_PAGE_SIZE)
-    pageSize = sysconf( _SC_PAGE_SIZE );
+    // pageSize = sysconf( _SC_PAGE_SIZE );
 #else
-    pageSize = 4096;
+    // pageSize = 4096;
 #endif
 
     // posix_memaling and mprotect?
