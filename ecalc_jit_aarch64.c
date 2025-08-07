@@ -210,7 +210,7 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
                 apos1 = ecalc_bin_printer_b_cond( tree, 0, A64_COND_EQ, 0 );
 
                 // 現在位置保存
-                pos2 = ecalc_bin_printer_get_pos( tree );
+                // pos2 = ecalc_bin_printer_get_pos( tree );
 
                 // 実行 X0とX1が破壊される可能性があるので退避
                 ecalc_bin_printer_stp_Xreg_on_Xreg_pre_index( tree, A64_X0, A64_X1, A64_SP, -16 );
@@ -254,7 +254,7 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
                 apos1 = ecalc_bin_printer_b_cond( tree, 0, A64_COND_EQ, 0 );
 
                 // 現在位置保存
-                pos1 = ecalc_bin_printer_get_pos( tree );
+                // pos1 = ecalc_bin_printer_get_pos( tree );
 
                 // 実行 ( 右の値は使わないので最後のD0は読まなくても良い )
                 ecalc_bin_printer_tree( tree, token->right );
@@ -321,7 +321,7 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
         apos1 = ecalc_bin_printer_b_cond( tree, 0, A64_COND_EQ, 0 );
 
         // 現在位置保存
-        pos1 = ecalc_bin_printer_get_pos( tree );
+        // pos1 = ecalc_bin_printer_get_pos( tree );
 
         // right != 0なので割り算
         ecalc_bin_printer_fdiv_Dreg( tree, A64_D0, A64_D0, A64_D1 );
@@ -353,7 +353,7 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
         apos1 = ecalc_bin_printer_b_cond( tree, 0, A64_COND_EQ, 0 );
 
         // 現在位置保存
-        pos1 = ecalc_bin_printer_get_pos( tree );
+        // pos1 = ecalc_bin_printer_get_pos( tree );
 
         // right != 0なので余りを計算
 
@@ -418,7 +418,7 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
         apos1 = ecalc_bin_printer_b_cond( tree, 0, A64_COND_EQ, 0 );
 
         // 現在位置保存
-        pos1 = ecalc_bin_printer_get_pos( tree );
+        // pos1 = ecalc_bin_printer_get_pos( tree );
 
         // D0 < D1ならpos3までジャンプ
         apos2 = ecalc_bin_printer_b_cond( tree, 0, A64_COND_LT, 0 );
@@ -458,13 +458,13 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
         apos1 = ecalc_bin_printer_b_cond( tree, 0, A64_COND_EQ, 0 );
 
         // 現在位置保存
-        pos1 = ecalc_bin_printer_get_pos( tree );
+        // pos1 = ecalc_bin_printer_get_pos( tree );
 
         // D0 < D1ならpos3までジャンプ
         apos2 = ecalc_bin_printer_b_cond( tree, 0, A64_COND_LT, 0 );
 
         // 現在位置保存
-        pos2 = ecalc_bin_printer_get_pos( tree );
+        // pos2 = ecalc_bin_printer_get_pos( tree );
 
         // right < left なのでD0 = 0
         ecalc_bin_printer_clear_D0( tree );
@@ -498,7 +498,7 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
         apos1 = ecalc_bin_printer_b_cond( tree, 0, A64_COND_EQ, 0 );
 
         // 現在位置保存
-        pos1 = ecalc_bin_printer_get_pos( tree );
+        // pos1 = ecalc_bin_printer_get_pos( tree );
 
         // right != left なのでD0 = 0
         ecalc_bin_printer_clear_D0( tree );
