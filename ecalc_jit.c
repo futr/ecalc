@@ -2,6 +2,7 @@
 
 #include "ecalc_jit_64.h"
 #include "ecalc_jit_32.h"
+#include "ecalc_jit_aarch64.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -9,6 +10,9 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #endif
+
+#include <stdio.h>
+#include <stdlib.h>
 
 ECALC_JIT_TREE *ecalc_create_jit_tree( struct ECALC_TOKEN *token )
 {
@@ -64,8 +68,6 @@ double ecalc_get_jit_tree_value( ECALC_JIT_TREE *tree, double **vars, double ans
 #endif
 }
 
-
-
 void *ecalc_allocate_jit_memory( size_t size )
 {
     // JIT用バイナリ空間確保
@@ -86,8 +88,11 @@ void *ecalc_allocate_jit_memory( size_t size )
 
     // posix_memaling and mprotect?
     // Allocate jit memory space
+#if defined(__aarch64__) && defined(__APPLE__)
     ptr = mmap( NULL, size, PROT_EXEC | PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0 );
-
+#else
+    ptr = mmap( NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0 );
+#endif
     if ( ptr == MAP_FAILED ) {
         return NULL;
     }
@@ -118,6 +123,14 @@ void ecalc_bin_printer_print( ECALC_JIT_TREE *tree, unsigned char *buf, size_t s
     tree->pos += size;
 }
 
+void ecalc_bin_printer_print_to( ECALC_JIT_TREE *tree, size_t pos, void *buf, size_t size )
+{
+    // もらったバイト列を指定位置に書き込み、位置は進めない
+    if ( tree->data != NULL ) {
+        memcpy( tree->data + pos, buf, size );
+    }
+}
+
 size_t ecalc_bin_printer_get_pos( ECALC_JIT_TREE *tree )
 {
     // 現在位置取得
@@ -139,4 +152,32 @@ void ecalc_bin_printer_set_address( ECALC_JIT_TREE *tree, size_t pos, int32_t ad
     if ( tree->data != NULL ) {
         memcpy( tree->data + pos, &address, sizeof( address ) );
     }
+}
+
+void ecalc_bin_printer_get_data( ECALC_JIT_TREE *tree, void *dst, size_t pos, size_t size )
+{
+    // 指定位置のデータを取得
+    if ( tree->data != NULL ) {
+        memcpy( dst, tree->data + pos, size );
+    }
+}
+
+void ecalc_bin_printer_error( ECALC_JIT_TREE *tree, const char *arch, const char *func, const char *msg )
+{
+    // バイナリプリンタのエラーを記録
+    fprintf( stderr, "{arch=\"%s\",func=\"%s\",msg=\"%s\"}\n", arch, func, msg );
+}
+
+void ecalc_save_jit_binary( ECALC_JIT_TREE *tree, const char *name )
+{
+    // バイナリをそのままファイルに保存
+    FILE *fp;
+
+    if ( ( fp = fopen( name, "wb" ) ) == NULL ) {   // bはLinuxでは意味がない
+        return;
+    }
+
+    fwrite( tree->data, tree->size, 1, fp );
+
+    fclose( fp );
 }

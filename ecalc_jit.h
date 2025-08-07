@@ -26,10 +26,18 @@ void *ecalc_allocate_jit_memory( size_t size );
 void ecalc_free_jit_memory( void *data, size_t size );
 
 // バイト列書き込み補助
-void ecalc_bin_printer_print(ECALC_JIT_TREE *tree, unsigned char *buf, size_t size );
+void ecalc_bin_printer_print( ECALC_JIT_TREE *tree, unsigned char *buf, size_t size );
+void ecalc_bin_printer_print_to( ECALC_JIT_TREE *tree, size_t pos, void *buf, size_t size );
 size_t ecalc_bin_printer_get_pos( ECALC_JIT_TREE *tree );
 void ecalc_bin_printer_reset_tree( ECALC_JIT_TREE *tree );
 void ecalc_bin_printer_set_address( ECALC_JIT_TREE *tree, size_t pos, int32_t address );
+void ecalc_bin_printer_get_data( ECALC_JIT_TREE *tree, void *dst, size_t pos, size_t size );
+
+// エラー
+void ecalc_bin_printer_error( ECALC_JIT_TREE *tree, const char *arch, const char *func, const char *msg );
+
+// デバッグ
+void ecalc_save_jit_binary( ECALC_JIT_TREE *tree, const char *name );
 
 #ifdef __cplusplus
 }
