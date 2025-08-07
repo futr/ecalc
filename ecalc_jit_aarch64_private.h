@@ -77,8 +77,6 @@ static void ecalc_bin_printer_add_sp_uimm12(ECALC_JIT_TREE *tree, uint16_t val);
 static void ecalc_bin_printer_sub_sp_uimm12(ECALC_JIT_TREE *tree, uint16_t val);
 static void ecalc_bin_printer_add_Xreg_Xreg_uimm12( ECALC_JIT_TREE *tree, uint8_t rd, uint8_t rn, uint16_t val, uint8_t shift12 );
 static void ecalc_bin_printer_sub_Xreg_Xreg_uimm12( ECALC_JIT_TREE *tree, uint8_t rd, uint8_t rn, uint16_t val, uint8_t shift12 );
-static void ecalc_bin_printer_add_reg_uimm12(ECALC_JIT_TREE *tree, uint8_t reg, uint16_t val);  // DEPRECATED
-static void ecalc_bin_printer_sub_reg_uimm12(ECALC_JIT_TREE *tree, uint8_t reg, uint16_t val);  // DEPRECATED
 
 static void ecalc_bin_printer_subs_shifted_Xreg( ECALC_JIT_TREE *tree, uint8_t rd, uint8_t rn, uint8_t rm, uint8_t shift_mode, uint8_t shift );
 static void ecalc_bin_printer_cmp( ECALC_JIT_TREE *tree, uint8_t rn, uint8_t rm );

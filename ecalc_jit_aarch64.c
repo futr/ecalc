@@ -702,43 +702,6 @@ static void ecalc_bin_printer_sub_sp_uimm12(ECALC_JIT_TREE *tree, uint16_t val)
     ecalc_bin_printer_sub_Xreg_Xreg_uimm12( tree, A64_SP, A64_SP, val, 0 );
 }
 
-static void ecalc_bin_printer_add_reg_uimm12(ECALC_JIT_TREE *tree, uint8_t reg, uint16_t val)
-{
-    // DEPRECATED 同じ関数を別に作っていた
-    // REGに即値を足す
-    // reg <= reg + val
-    /*
-     * add reg, reg, uimm12   RR v(Xxxrr) vv 91
-     */
-    uint8_t bin[] = {0x00, 0x00, 0x00, 0x91};
-    uint32_t buf = 0;
-
-    memcpy( &buf, bin, 4 );
-    buf = buf | ( (uint32_t)val << 10 );
-    buf = buf | reg;
-    buf = buf | ( reg << 5 );
-
-    ecalc_bin_printer_print( tree, (uint8_t *)&buf, sizeof( buf ) );
-}
-
-static void ecalc_bin_printer_sub_reg_uimm12(ECALC_JIT_TREE *tree, uint8_t reg, uint16_t val)
-{
-    // DEPRECATED
-    // REGから即値をひく
-    /*
-     * sub reg, reg, uimm12   RR v(Xxxrr) vv D1
-     */
-    uint8_t bin[] = {0x00, 0x00, 0x00, 0xD1};
-    uint32_t buf = 0;
-
-    memcpy( &buf, bin, 4 );
-    buf = buf | ( (uint32_t)val << 10 );
-    buf = buf | reg;
-    buf = buf | ( reg << 5 );
-
-    ecalc_bin_printer_print( tree, (uint8_t *)&buf, sizeof( buf ) );
-}
-
 static void ecalc_bin_printer_subs_shifted_Xreg( ECALC_JIT_TREE *tree, uint8_t rd, uint8_t rn, uint8_t rm, uint8_t shift_mode, uint8_t shift )
 {
     // RnからシフトしたRmを引いてRdにセットする
