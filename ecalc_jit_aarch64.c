@@ -115,7 +115,7 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
 {
     const int left  = 0;
     const int right = 16;
-    const int dbuf  = 32;
+    // const int dbuf  = 32;
     int depth = 48;
     size_t pos1, pos2, pos3, pos4, apos1, apos2, apos3;
 
@@ -421,7 +421,7 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
         pos1 = ecalc_bin_printer_get_pos( tree );
 
         // D0 < D1ならpos3までジャンプ
-        apos2 = ecalc_bin_printer_b_cond( tree, 0, A64_COND_LT, 0 );
+        apos2 = ecalc_bin_printer_b_cond( tree, 0, A64_COND_GT, 0 );
 
         // 現在位置保存
         pos2 = ecalc_bin_printer_get_pos( tree );
@@ -461,7 +461,7 @@ static void ecalc_bin_printer_tree( ECALC_JIT_TREE *tree, struct ECALC_TOKEN *to
         pos1 = ecalc_bin_printer_get_pos( tree );
 
         // D0 < D1ならpos3までジャンプ
-        apos2 = ecalc_bin_printer_b_cond( tree, 0, A64_COND_LT, 0 );
+        apos2 = ecalc_bin_printer_b_cond( tree, 0, A64_COND_GT, 0 );
 
         // 現在位置保存
         pos2 = ecalc_bin_printer_get_pos( tree );
