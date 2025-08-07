@@ -24,9 +24,11 @@ ECALC_JIT_TREE *ecalc_create_jit_tree( struct ECALC_TOKEN *token )
     return ecalc_create_jit_tree_i386( token );
     #endif
 #else
-    #ifdef __x86_64__
+    #if   defined (__aarch64__)
+    return ecalc_create_jit_tree_aarch64( token );
+    #elif defined (__x86_64__)
     return ecalc_create_jit_tree_amd64( token );
-    #else
+    #elif defined (__i386__)
     return ecalc_create_jit_tree_i386( token );
     #endif
 #endif
@@ -42,9 +44,11 @@ void ecalc_free_jit_tree( ECALC_JIT_TREE *tree )
     return ecalc_free_jit_tree_i386( tree );
     #endif
 #else
-    #ifdef __x86_64__
+    #if   defined (__aarch64__)
+    return ecalc_free_jit_tree_aarch64( token );
+    #elif defined (__x86_64__)
     return ecalc_free_jit_tree_amd64( tree );
-    #else
+    #elif defined (__i386__)
     return ecalc_free_jit_tree_i386( tree );
     #endif
 #endif
@@ -60,9 +64,11 @@ double ecalc_get_jit_tree_value( ECALC_JIT_TREE *tree, double **vars, double ans
     return ecalc_get_jit_tree_value_i386( tree, vars, ans );
     #endif
 #else
-    #ifdef __x86_64__
+    #if   defined (__aarch64__)
+    return ecalc_get_jit_tree_value_aarch64( tree, vars, ans );
+    #elif defined (__x86_64__)
     return ecalc_get_jit_tree_value_amd64( tree, vars, ans );
-    #else
+    #elif defined (__i386__)
     return ecalc_get_jit_tree_value_i386( tree, vars, ans );
     #endif
 #endif
