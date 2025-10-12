@@ -1,8 +1,8 @@
 # 名前
 SOURCES = main.c ecalc.c
-JITSOURCES = jittest.c ecalc.c ecalc_jit.c ecalc_jit_32.c ecalc_jit_64.c ecalc_jit_aarch64.c
+JITSOURCES = jitmain.c ecalc.c ecalc_jit.c ecalc_jit_32.c ecalc_jit_64.c ecalc_jit_aarch64.c
 TARGET  = main
-JITTARGET = jitmain
+JITTARGET = ecalc
 
 LINK = -lm
 
@@ -10,7 +10,7 @@ LINK = -lm
 CC = gcc
 
 # ルール
-.PHONY: clean
+.PHONY: clean install
 
 all :
 	$(MAKE) $(TARGET)
@@ -18,10 +18,17 @@ all :
 $(TARGET) : $(SOURCES)
 	$(CC) -O2 -o $(TARGET) $(SOURCES) -Wall $(LINK)
 
-jitmain : $(JITSOURCES)
+$(JITTARGET) : $(JITSOURCES)
 	$(CC) -O2 -o $(JITTARGET) $(JITSOURCES) -Wall $(LINK)
 
+install : $(JITTARGET)
+	sudo install -t /usr/local/bin ecalc
+
 clean :
+	-rm a.out
+	-rm ecalc
+	-rm jitmain
+	-rm main
 	-rm *.o
 	-rm $(TARGET)
 	-rm $(JITTARGET)
