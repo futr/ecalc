@@ -1,6 +1,5 @@
 main
 jitmain
-ecalc
 *.obj
 *.pro.*
 *.o
