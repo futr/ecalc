@@ -399,7 +399,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
         // XMM0とXMM1を比較
         ecalc_bin_printer_ucomisd_xmm0_xmm1( tree );
 
-        // ZF(C3)が1ならXMM0==XMM1なのでpos2までジャンプ
+        // ZF(C3)が1ならXMM0==XMM1なのでpos3までジャンプ
         apos1 = ecalc_bin_printer_je( tree, 0 );
 
         // 現在位置保存
@@ -429,7 +429,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
         pos4 = ecalc_bin_printer_get_pos( tree );
 
         // ジャンプアドレス埋め込み
-        ecalc_bin_printer_set_address( tree, apos1, pos2 - pos1 );
+        ecalc_bin_printer_set_address( tree, apos1, pos3 - pos1 );
         ecalc_bin_printer_set_address( tree, apos2, pos3 - pos2 );
         ecalc_bin_printer_set_address( tree, apos3, pos4 - pos3 );
 
@@ -440,7 +440,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
         // XMM0とXMM1を比較
         ecalc_bin_printer_ucomisd_xmm0_xmm1( tree );
 
-        // ZF(C3)が1ならXMM0 == XMM1なのでpos3までジャンプ
+        // ZF(C3)が1ならXMM0 == XMM1なのでpos2までジャンプ
         apos1 = ecalc_bin_printer_je( tree, 0 );
 
         // 現在位置保存
@@ -470,7 +470,7 @@ static void ecalc_bin_printer_tree_64( ECALC_JIT_TREE *tree, struct ECALC_TOKEN 
         pos4 = ecalc_bin_printer_get_pos( tree );
 
         // ジャンプアドレス埋め込み
-        ecalc_bin_printer_set_address( tree, apos1, pos3 - pos1 );
+        ecalc_bin_printer_set_address( tree, apos1, pos2 - pos1 );
         ecalc_bin_printer_set_address( tree, apos2, pos3 - pos2 );
         ecalc_bin_printer_set_address( tree, apos3, pos4 - pos3 );
 
