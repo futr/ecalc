@@ -120,6 +120,7 @@ struct ECALC_TOKEN *ecalc_make_token( char *text )
     size_t len;
     int index;
     int resvs;
+    int e_count;
 
     /* 関数の数 */
     resvs = sizeof(ecalc_reserved) / sizeof(ecalc_reserved[0]);
@@ -135,6 +136,7 @@ L_ECALC_ANSYS:
     /* 先頭は？ */
     if ( isdigit( *text ) ) {
         /* 数字だった */
+        e_count = 0;
 
         /* 0xの表記も許す ( このままだとオーバーランしそうだけど、最悪最後でも\0のはずなので問題ない？ ) */
         if ( ( *text == '0' ) && ( *( text + 1 ) == 'x' || *( text + 1 ) == 'X' ) ) {
@@ -151,6 +153,15 @@ L_ECALC_ANSYS:
             /* 数字の間は繰り返し */
             do {
                 text++;
+
+                if (e_count == 0 && (*text == 'E' || *text == 'e')) {
+                    text++;
+                    e_count++;
+
+                    if (*text == '-' || *text == '+') {
+                        text++;
+                    }
+                }
             } while ( isdigit( *text ) || *text == '.' );
         }
 
